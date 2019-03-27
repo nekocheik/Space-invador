@@ -126,24 +126,61 @@ var playeur = {
     y: 0
   }
 };
-console.log(playeur);
-var Move = {
-  x: 1,
-  speed: 20,
+var enemys = {
+  enemyArray: [],
+  move: function move() {
+    var elementEnemys = document.querySelectorAll('.ctx .enemy');
+
+    for (var i = 0; i < elementEnemys.length; i++) {
+      this.enemyArray[i] = {
+        topLeft: elementEnemys[i].offsetLeft + elementEnemys[i].clientHeight
+      };
+      this.enemyArray[i] = {
+        topLeft: elementEnemys[i].offsetLeft + elementEnemys[i].clientHeight,
+        topRight: this.enemyArray[i].topLeft + elementEnemys[i].offsetLeft + elementEnemys[i].clientWidth,
+        element: elementEnemys[i]
+      };
+    }
+  },
   ArrowRight: function ArrowRight() {
     this.x = this.x + this.speed;
-    playeur.x = this.x;
+    enemys.postion.x = this.x;
+    console.log(enemyArray);
     return this.x;
   },
   ArrowLeft: function ArrowLeft() {
     this.x = this.x - this.speed;
     playeur.x = this.x;
+    console.log(enemyArray);
+    return this.x;
+  }
+};
+enemys.move();
+console.log(enemys.enemyArray); //.offsetLeft
+
+var Move = {
+  x: 1,
+  speed: 20,
+  ArrowRight: function ArrowRight() {
+    this.x = this.x + this.speed;
+    playeur.postion.x = this.x;
+    console.log(playeur);
+    return this.x;
+  },
+  ArrowLeft: function ArrowLeft() {
+    this.x = this.x - this.speed;
+    playeur.x = this.x;
+    console.log(playeur);
     return this.x;
   }
 };
 document.addEventListener('keydown', function () {
   if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
     playeur.element.style.transform = "translateX(".concat(Move[event.key](playeur), "px)");
+
+    for (var i = 0; i < enemys.enemyArray.length; i++) {
+      enemys.enemyArray[i].element.style.transform = "translateX(".concat(Move[event.key](playeur), "px)");
+    }
   }
 });
 /* 
@@ -177,7 +214,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58784" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "59367" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

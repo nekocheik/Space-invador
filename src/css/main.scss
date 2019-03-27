@@ -3,10 +3,16 @@
   height: 15vh;
   border: solid black 1px;
   position: relative;
-  div{
+  div.playeur{
     position: absolute;
     width: 100px;
     height: 100px;
     border: solid black 1px;
+  }
+  div.enemy{
+    width: 100px;
+    height: 100px;
+    border: solid black 1px;
+    display: inline-block;
   }
 }

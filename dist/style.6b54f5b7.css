@@ -52,11 +52,17 @@ table {
   border: solid black 1px;
   position: relative;
 }
-.ctx div {
+.ctx div.playeur {
   position: absolute;
   width: 100px;
   height: 100px;
   border: solid black 1px;
+}
+.ctx div.enemy {
+  width: 100px;
+  height: 100px;
+  border: solid black 1px;
+  display: inline-block;
 }
 
 /*# sourceMappingURL=/style.6b54f5b7.css.map */
