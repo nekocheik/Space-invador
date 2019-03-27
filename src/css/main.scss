@@ -1,0 +1,12 @@
+.ctx{
+  width: 90vw;
+  height: 15vh;
+  border: solid black 1px;
+  position: relative;
+  div{
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border: solid black 1px;
+  }
+}
