@@ -47,7 +47,7 @@ table {
 	border-spacing: 0;
 }
 .ctx {
-  width: 90vw;
+  width: 1000px;
   height: 15vh;
   border: solid black 1px;
   position: relative;
@@ -62,6 +62,7 @@ table {
   width: 100px;
   height: 100px;
   border: solid black 1px;
+  position: absolute;
   display: inline-block;
 }
 

@@ -1,69 +1,77 @@
-// créer un élément qui est mon playeur 
+import { prototype } from "events";
+import { create } from "domain";
 
+
+// Playeur 
 var playeur = {
   element :  document.querySelector('.ctx .playeur') ,
   postion : {
     x : 0 ,
     y : 0 
+  },
+}
+
+
+
+// Fonction create Move
+
+
+var enemy = document.querySelectorAll('.ctx .enemy');
+
+var enemiesConstructor = function (element) {
+  this.element = element ;
+  this.topLeft = null ;
+  this.topRight = null ;
+  this.bottomLeft = null ;
+  this.bottomRight = null ;
+  this.ctx = 1 ;
+}
+
+let map = document.querySelectorAll('.ctx'); 
+
+enemiesConstructor.prototype.postion =function () {
+  this.topLeft = this.element.offsetLeft;
+  this.topRight = this.element.offsetLeft + this.element.clientWidth ;
+  this.bottomLeft = this.element.clientHeight + this.element.offsetLeft;
+  this.bottomRight = this.element.clientHeight + this.element.clientWidth + this.element.offsetLeft ;
+  if ( this.ctx < 5 ) {
+    map[this.ctx].appendChild(this.element)
+    this.ctx++;
+  }else{
+    this.ctx = 0 ;
+    map[this.ctx].appendChild(this.element)
   }
 }
 
-var enemys = {
-  enemyArray : [],
-  move : function() {
-    let elementEnemys = document.querySelectorAll('.ctx .enemy') ;
-    for (let i = 0; i < elementEnemys.length; i++) {
-      this.enemyArray[i] = {
-        topLeft :  elementEnemys[i].offsetLeft + elementEnemys[i].clientHeight,
-      }
-      this.enemyArray[i] = {
-        topLeft :  elementEnemys[i].offsetLeft + elementEnemys[i].clientHeight,
-        topRight: this.enemyArray[i].topLeft + elementEnemys[i].offsetLeft + elementEnemys[i].clientWidth ,
-        element: elementEnemys[i],
-      }
-    }
-  },  
-  ArrowRight : function(){ this.x = this.x + this.speed ;
-    enemys.postion.x = this.x ;
-    console.log(enemyArray)
-    return this.x;
-  } ,
-  ArrowLeft : function(){ this.x = this.x - this.speed ;
-    playeur.x = this.x ;
-    console.log(enemyArray)
-    return this.x;
-  } 
+var enemies = [] ;
+
+for (let i = 0; i < enemy.length; i++) {
+  enemies[i] = new enemiesConstructor(enemy[i]);
+
 }
 
 
-enemys.move();
-console.log(enemys.enemyArray )
 
-//.offsetLeft
 const Move = {
   x : 1 ,
   speed : 20,
   ArrowRight : function(){ this.x = this.x + this.speed ;
     playeur.postion.x = this.x ;
-    console.log(playeur)
-    return this.x;
+    return playeur.postion.x = this.x ;
   } ,
   ArrowLeft : function(){ this.x = this.x - this.speed ;
     playeur.x = this.x ;
-    console.log(playeur)
-    return this.x;
+    return playeur.postion.x = this.x;
   } ,
-}
+};
 
-document.addEventListener('keydown', function(){
+
+// Event whene for move
+
+document.addEventListener('keydown', () => {
   if( event.key === "ArrowRight" || event.key === "ArrowLeft" ) {
-    playeur.element.style.transform = `translateX(${Move[event.key](playeur)}px)`
-    for (let i = 0; i < enemys.enemyArray.length; i++) {
-      enemys.enemyArray[i].element.style.transform = `translateX(${Move[event.key](playeur)}px)`
-    }
+    playeur.element.style.left = `${Move[event.key](playeur)}px` ;
+    enemies[0].element.style.left = `${Move[event.key](playeur)}px` ;
+    enemies[0].postion()
   }
-})
-
-/* 
-
-*/
+});
