@@ -47,23 +47,28 @@ table {
 	border-spacing: 0;
 }
 .ctx {
-  width: 1000px;
-  height: 15vh;
+  width: 80vw;
+  height: 10vh;
   border: solid black 1px;
   position: relative;
 }
 .ctx div.playeur {
   position: absolute;
-  width: 100px;
-  height: 100px;
+  width: 5vh;
+  height: 5vh;
   border: solid black 1px;
 }
 .ctx div.enemy {
-  width: 100px;
-  height: 100px;
+  width: 5vh;
+  height: 5vh;
   border: solid black 1px;
   position: absolute;
   display: inline-block;
+}
+
+body {
+  display: block;
+  margin: auto;
 }
 
 /*# sourceMappingURL=/style.6b54f5b7.css.map */

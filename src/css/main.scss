@@ -1,19 +1,23 @@
 .ctx{
-  width: 1000px;
-  height: 15vh;
+  width: 80vw;
+  height: 10vh;
   border: solid black 1px;
   position: relative;
   div.playeur{
     position: absolute;
-    width: 100px;
-    height: 100px;
+    width: 5vh;
+    height: 5vh;
     border: solid black 1px;
   }
   div.enemy{
-    width: 100px;
-    height: 100px;
+    width: 5vh;
+    height: 5vh;
     border: solid black 1px;
     position: absolute;
     display: inline-block;
   }
+}
+body{
+  display: block;
+  margin: auto;
 }

@@ -642,7 +642,25 @@ var enemiesConstructor = function enemiesConstructor(element) {
   this.ctx = 1;
 };
 
-var map = document.querySelectorAll('.ctx');
+var mapsElements = document.querySelectorAll('.ctx');
+var maps = [];
+
+var mapsConstructor = function mapsConstructor(element) {
+  this.element = element;
+  this.width = null;
+  this.height = null;
+  this.child = null;
+};
+
+for (var i = 0; i < mapsElements.length; i++) {
+  maps[i] = new mapsConstructor(mapsElements[i]);
+}
+
+mapsConstructor.prototype.inner = function (params) {
+  this.width = this.element.clientWidth;
+  this.height = this.element.clientHeight;
+  this.child = null;
+};
 
 enemiesConstructor.prototype.postion = function () {
   this.topLeft = this.element.offsetLeft;
@@ -650,19 +668,22 @@ enemiesConstructor.prototype.postion = function () {
   this.bottomLeft = this.element.clientHeight + this.element.offsetLeft;
   this.bottomRight = this.element.clientHeight + this.element.clientWidth + this.element.offsetLeft;
 
-  if (this.ctx < 5) {
-    map[this.ctx].appendChild(this.element);
+  if (!maps[0].width) {
+    for (var _i = 0; _i < maps.length; _i++) {
+      maps[_i].inner();
+    }
+  }
+
+  if (this.bottomRight > maps[0].width || this.topLeft < 0 && this.ctx < 10) {
+    mapsElements[this.ctx].appendChild(this.element);
     this.ctx++;
-  } else {
-    this.ctx = 0;
-    map[this.ctx].appendChild(this.element);
   }
 };
 
 var enemies = [];
 
-for (var i = 0; i < enemy.length; i++) {
-  enemies[i] = new enemiesConstructor(enemy[i]);
+for (var _i2 = 0; _i2 < enemy.length; _i2++) {
+  enemies[_i2] = new enemiesConstructor(enemy[_i2]);
 }
 
 var Move = {
@@ -685,8 +706,10 @@ document.addEventListener('keydown', function () {
     playeur.element.style.left = "".concat(Move[event.key](playeur), "px");
     enemies[0].element.style.left = "".concat(Move[event.key](playeur), "px");
     enemies[0].postion();
+    console.log(enemies);
   }
 });
+console.log(maps, enemies);
 },{"events":"../node_modules/events/events.js","domain":"../node_modules/domain-browser/source/index.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -715,7 +738,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58268" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "62395" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
