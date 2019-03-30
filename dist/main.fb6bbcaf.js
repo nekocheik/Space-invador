@@ -628,64 +628,8 @@ var playeur = {
   postion: {
     x: 0,
     y: 0
-  } // Fonction create Move
-
-};
-var enemy = document.querySelectorAll('.ctx .enemy');
-
-var enemiesConstructor = function enemiesConstructor(element) {
-  this.element = element;
-  this.topLeft = null;
-  this.topRight = null;
-  this.bottomLeft = null;
-  this.bottomRight = null;
-  this.ctx = 1;
-};
-
-var mapsElements = document.querySelectorAll('.ctx');
-var maps = [];
-
-var mapsConstructor = function mapsConstructor(element) {
-  this.element = element;
-  this.width = null;
-  this.height = null;
-  this.child = null;
-};
-
-for (var i = 0; i < mapsElements.length; i++) {
-  maps[i] = new mapsConstructor(mapsElements[i]);
-}
-
-mapsConstructor.prototype.inner = function (params) {
-  this.width = this.element.clientWidth;
-  this.height = this.element.clientHeight;
-  this.child = null;
-};
-
-enemiesConstructor.prototype.postion = function () {
-  this.topLeft = this.element.offsetLeft;
-  this.topRight = this.element.offsetLeft + this.element.clientWidth;
-  this.bottomLeft = this.element.clientHeight + this.element.offsetLeft;
-  this.bottomRight = this.element.clientHeight + this.element.clientWidth + this.element.offsetLeft;
-
-  if (!maps[0].width) {
-    for (var _i = 0; _i < maps.length; _i++) {
-      maps[_i].inner();
-    }
-  }
-
-  if (this.bottomRight > maps[0].width || this.topLeft < 0 && this.ctx < 10) {
-    mapsElements[this.ctx].appendChild(this.element);
-    this.ctx++;
   }
 };
-
-var enemies = [];
-
-for (var _i2 = 0; _i2 < enemy.length; _i2++) {
-  enemies[_i2] = new enemiesConstructor(enemy[_i2]);
-}
-
 var Move = {
   x: 1,
   speed: 20,
@@ -699,7 +643,63 @@ var Move = {
     playeur.x = this.x;
     return playeur.postion.x = this.x;
   }
-}; // Event whene for move
+}; // Fonction create Move
+
+var enemy = document.querySelectorAll('.ctx .enemy');
+
+var enemiesConstructor = function enemiesConstructor(element) {
+  this.element = element;
+  this.body = null;
+  this.ctx = 1;
+};
+
+enemiesConstructor.prototype.postion = function () {
+  this.body = {
+    topLeft: this.element.offsetLeft,
+    topRight: this.element.offsetLeft + this.element.clientWidth,
+    bottomLeft: this.element.clientHeight + this.element.offsetLeft,
+    bottomRight: this.element.clientHeight + this.element.clientWidth + this.element.offsetLeft
+  };
+
+  if (!maps[0].width) {
+    for (var i = 0; i < maps.length; i++) {
+      maps[i].inner();
+    }
+  }
+
+  if (this.body.bottomRight > maps[0].width || this.body.topLeft < 0 && this.ctx < 10) {
+    mapsElements[this.ctx].appendChild(this.element);
+    this.ctx++;
+  }
+};
+
+var enemies = [];
+
+for (var i = 0; i < enemy.length; i++) {
+  enemies[i] = new enemiesConstructor(enemy[i]);
+}
+
+var mapsElements = document.querySelectorAll('.ctx');
+var maps = [];
+
+var mapsConstructor = function mapsConstructor(element) {
+  this.element = element;
+  this.width = null;
+  this.height = null;
+  this.child = null;
+  this.Mapping();
+};
+
+mapsConstructor.prototype.Mapping = function () {
+  this.width = this.element.clientWidth;
+  this.height = this.element.clientHeight;
+  this.child = null;
+};
+
+for (var _i = 0; _i < mapsElements.length; _i++) {
+  maps[_i] = new mapsConstructor(mapsElements[_i]);
+} // Event whene for move
+
 
 document.addEventListener('keydown', function () {
   if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
@@ -708,8 +708,49 @@ document.addEventListener('keydown', function () {
     enemies[0].postion();
     console.log(enemies);
   }
+}); // creat shoot
+
+var shoots = [{
+  number: 0
+}];
+document.addEventListener('keypress', function (event) {
+  if (event.keyCode === 13) {
+    shoots.push(new shootConstructor());
+    console.log(shoots);
+    console.log(maps);
+    console.log(playeur);
+  }
 });
-console.log(maps, enemies);
+
+var shootConstructor = function shootConstructor() {
+  shoots[0].number++;
+  this.numberOf = shoots[0].number;
+  this.shoot = document.createElement('div');
+  this.shoot.className = "shoot";
+  maps[9].element.appendChild(this.shoot);
+  this.y = null;
+  this.x = null;
+  this.owner = playeur;
+  this.move();
+  this.life = true;
+}; //   this.shoot.style.top = `${100}px` ; for move
+
+
+shootConstructor.prototype.move = function () {
+  console.log(playeur);
+  this.y = this.owner.postion.y;
+  this.x = this.owner.postion.x;
+  this.shoot.style.left = "".concat(this.owner.postion.x, "px");
+  shootMove(this.shoot, this.owner.postion.x, this.numberOf);
+};
+
+function shootMove(element, x, number) {
+  setTimeout(function () {
+    var speed = 10 + x;
+    element.style.bottom = "".concat(speed, "px");
+    shootMove(element, speed);
+  }, 50);
+}
 },{"events":"../node_modules/events/events.js","domain":"../node_modules/domain-browser/source/index.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -738,7 +779,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "62395" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "59445" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
