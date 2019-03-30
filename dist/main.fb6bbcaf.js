@@ -716,9 +716,9 @@ var shoots = [{
 document.addEventListener('keypress', function (event) {
   if (event.keyCode === 13) {
     shoots.push(new shootConstructor());
-    console.log(shoots);
-    console.log(maps);
-    console.log(playeur);
+    shoots[shoots[0].number].move(); //console.log(shoots)
+
+    console.log(maps); //console.log(playeur)
   }
 });
 
@@ -726,30 +726,40 @@ var shootConstructor = function shootConstructor() {
   shoots[0].number++;
   this.numberOf = shoots[0].number;
   this.shoot = document.createElement('div');
-  this.shoot.className = "shoot";
-  maps[9].element.appendChild(this.shoot);
+  this.shoot.className = "shoot"; //maps[9].element.appendChild(this.shoot);
+
   this.y = null;
   this.x = null;
   this.owner = playeur;
-  this.move();
   this.life = true;
 }; //   this.shoot.style.top = `${100}px` ; for move
 
 
-shootConstructor.prototype.move = function () {
-  console.log(playeur);
+shootConstructor.prototype.move = function (element) {
   this.y = this.owner.postion.y;
   this.x = this.owner.postion.x;
-  this.shoot.style.left = "".concat(this.owner.postion.x, "px");
-  shootMove(this.shoot, this.owner.postion.x, this.numberOf);
+  this.shoot.style.left = "".concat(this.owner.element.offsetLeft, "px");
+  maps[9].element.appendChild(this.shoot);
+  shootMove(this.shoot, 0, shoots[shoots[0].number], 9);
 };
 
-function shootMove(element, x, number) {
-  setTimeout(function () {
-    var speed = 10 + x;
+function shootMove(element, y, objet, i) {
+  objet.y = y;
+  console.log(y);
+
+  if (maps[i] && maps[i].height < y) {
+    i--;
+    maps[i].element.appendChild(element);
+    var speed = 0;
     element.style.bottom = "".concat(speed, "px");
-    shootMove(element, speed);
-  }, 50);
+    shootMove(element, speed, objet, i);
+  } else {
+    setTimeout(function () {
+      var speed = 20 + y;
+      element.style.bottom = "".concat(speed, "px");
+      shootMove(element, speed, objet, i);
+    }, 100);
+  }
 }
 },{"events":"../node_modules/events/events.js","domain":"../node_modules/domain-browser/source/index.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
@@ -779,7 +789,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "59445" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "63500" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

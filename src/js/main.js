@@ -95,10 +95,12 @@ var shoots = [
 
 document.addEventListener('keypress', function(event){
   if (event.keyCode === 13 ) {
-      shoots.push(new shootConstructor())
-      console.log(shoots)
+      shoots.push(new shootConstructor());
+      shoots[shoots[0].number].move();
+      //console.log(shoots)
       console.log(maps)
-      console.log(playeur)
+
+      //console.log(playeur)
   }
 })
 
@@ -107,27 +109,37 @@ var shootConstructor = function () {
   this.numberOf = shoots[0].number ;
   this.shoot = document.createElement('div') ;
   this.shoot.className = "shoot" ;
-  maps[9].element.appendChild(this.shoot);
+  //maps[9].element.appendChild(this.shoot);
   this.y = null;
   this.x = null ;
   this.owner = playeur ;
-  this.move();
   this.life = true ;
 }
 
 //   this.shoot.style.top = `${100}px` ; for move
-shootConstructor.prototype.move = function (){
-  console.log(playeur)
+shootConstructor.prototype.move = function (element){
   this.y = this.owner.postion.y ;
   this.x = this.owner.postion.x ;
-  this.shoot.style.left = `${this.owner.postion.x}px` ;
-  shootMove( this.shoot , this.owner.postion.x , this.numberOf )
+  this.shoot.style.left = `${this.owner.element.offsetLeft}px` ;
+  maps[9].element.appendChild(this.shoot);
+  shootMove( this.shoot , 0 , shoots[shoots[0].number] , 9)
 }
 
-function shootMove(element , x , number ) {
-  setTimeout( ( function(){ 
-   let speed = 10 + x ;
-   element.style.bottom = `${speed}px` ;
-   shootMove(element , speed )
-    } ),50)
+function shootMove(element , y , objet , i ) {
+  objet.y = y ;
+  console.log(y)
+  if ( maps[i] && ( maps[i].height < y )) {
+    i--;
+    maps[i].element.appendChild(element);
+      let speed = 0;
+      element.style.bottom = `${speed}px` ;
+      shootMove(element , speed , objet , i  )
+  }else{
+    setTimeout( ( function(){ 
+      let speed = 20 + y ;
+      element.style.bottom = `${speed}px` ;
+      shootMove(element , speed , objet , i  )
+    } ),100)
   }
+  }
+
