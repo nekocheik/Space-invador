@@ -632,7 +632,7 @@ var playeur = {
 };
 var Move = {
   x: 1,
-  speed: 20,
+  speed: 2,
   ArrowRight: function ArrowRight() {
     this.x = this.x + this.speed;
     playeur.postion.x = this.x;
@@ -643,17 +643,25 @@ var Move = {
     playeur.x = this.x;
     return playeur.postion.x = this.x;
   }
-}; // Fonction create Move
+}; // Event whene for move
 
-var enemy = document.querySelectorAll('.ctx .enemy');
+document.addEventListener('keydown', function () {
+  if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+    playeur.element.style.left = "".concat(Move[event.key](playeur), "vw");
+  }
+}); // Fonction create Move
 
-var enemiesConstructor = function enemiesConstructor(element) {
-  this.element = element;
-  this.body = null;
-  this.ctx = 1;
+var enemies = [];
+
+var enemiesConstructor = function enemiesConstructor(ctx) {
+  var enemy = document.createElement('div');
+  enemy.className = 'enemy';
+  this.element = enemy;
+  var direction = 'right';
+  ctx.appendChild(enemy);
 };
 
-enemiesConstructor.prototype.postion = function () {
+enemiesConstructor.prototype.postion = function (ctx, maps, i) {
   this.body = {
     topLeft: this.element.offsetLeft,
     topRight: this.element.offsetLeft + this.element.clientWidth,
@@ -661,23 +669,21 @@ enemiesConstructor.prototype.postion = function () {
     bottomRight: this.element.clientHeight + this.element.clientWidth + this.element.offsetLeft
   };
 
-  if (!maps[0].width) {
-    for (var i = 0; i < maps.length; i++) {
-      maps[i].inner();
-    }
-  }
-
-  if (this.body.bottomRight > maps[0].width || this.body.topLeft < 0 && this.ctx < 10) {
+  if (this.body.bottomRight > maps.width || this.body.topLeft < 0 && this.ctx < 10) {
     mapsElements[this.ctx].appendChild(this.element);
     this.ctx++;
   }
 };
 
-var enemies = [];
+var moveEnemies = function moveEnemies(objet, element, speed, ctx, maps, mapsNumber) {
+  objet.postion(ctx, maps);
+  setTimeout(function () {
+    element.style.left = "".concat(speed, "vw");
+    speed++;
+    moveEnemies(objet, element, speed, ctx, maps);
+  }, 10);
+}; /////
 
-for (var i = 0; i < enemy.length; i++) {
-  enemies[i] = new enemiesConstructor(enemy[i]);
-}
 
 var mapsElements = document.querySelectorAll('.ctx');
 var maps = [];
@@ -686,29 +692,22 @@ var mapsConstructor = function mapsConstructor(element) {
   this.element = element;
   this.width = null;
   this.height = null;
-  this.child = null;
-  this.Mapping();
+  this.child = [];
+  this.child.push(new enemiesConstructor(element));
 };
 
-mapsConstructor.prototype.Mapping = function () {
+mapsConstructor.prototype.Mapping = function (i) {
+  this.mapsNumber = i;
   this.width = this.element.clientWidth;
   this.height = this.element.clientHeight;
-  this.child = null;
+  moveEnemies(this.child[0], this.child[0].element, 1, this.element, maps[i]);
 };
 
-for (var _i = 0; _i < mapsElements.length; _i++) {
-  maps[_i] = new mapsConstructor(mapsElements[_i]);
-} // Event whene for move
+for (var i = 0; i < mapsElements.length; i++) {
+  maps[i] = new mapsConstructor(mapsElements[i]);
+  maps[i].Mapping(i);
+} // creat shoot
 
-
-document.addEventListener('keydown', function () {
-  if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
-    playeur.element.style.left = "".concat(Move[event.key](playeur), "px");
-    enemies[0].element.style.left = "".concat(Move[event.key](playeur), "px");
-    enemies[0].postion();
-    console.log(enemies);
-  }
-}); // creat shoot
 
 var shoots = [{
   number: 0
@@ -716,9 +715,7 @@ var shoots = [{
 document.addEventListener('keypress', function (event) {
   if (event.keyCode === 13) {
     shoots.push(new shootConstructor());
-    shoots[shoots[0].number].move(); //console.log(shoots)
-
-    console.log(maps); //console.log(playeur)
+    shoots[shoots[0].number].move();
   }
 });
 
@@ -726,14 +723,12 @@ var shootConstructor = function shootConstructor() {
   shoots[0].number++;
   this.numberOf = shoots[0].number;
   this.shoot = document.createElement('div');
-  this.shoot.className = "shoot"; //maps[9].element.appendChild(this.shoot);
-
+  this.shoot.className = "shoot";
   this.y = null;
   this.x = null;
   this.owner = playeur;
   this.life = true;
-}; //   this.shoot.style.top = `${100}px` ; for move
-
+};
 
 shootConstructor.prototype.move = function (element) {
   this.y = this.owner.postion.y;
@@ -745,12 +740,17 @@ shootConstructor.prototype.move = function (element) {
 
 function shootMove(element, y, objet, i) {
   objet.y = y;
-  console.log(y);
 
   if (maps[i] && maps[i].height < y) {
     i--;
+
+    if (i === -1) {
+      element.remove();
+      return;
+    }
+
     maps[i].element.appendChild(element);
-    var speed = 0;
+    var speed = y - maps[i].height;
     element.style.bottom = "".concat(speed, "px");
     shootMove(element, speed, objet, i);
   } else {
@@ -789,7 +789,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "63500" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "57933" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

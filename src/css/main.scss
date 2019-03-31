@@ -1,12 +1,16 @@
 .ctx{
   width: 80vw;
-  height: 10vh;
-  border: solid black 1px;
+  height: 9vh;
+  //border: solid black 1px;
   position: relative;
+  background-color: white;
+  display: block;
+  margin: auto;
   div.playeur{
     position: absolute;
     width: 5vh;
     height: 5vh;
+    transition: left 200ms;
     border: solid black 1px;
   }
   div.enemy{
@@ -15,11 +19,13 @@
     border: solid black 1px;
     position: absolute;
     display: inline-block;
+    //transition: left 500ms;
   }
 }
 body{
   display: block;
   margin: auto;
+  //background-color: black;
 }
 
 .shoot{
@@ -27,5 +33,6 @@ body{
   width: 1vh;
   height: 1vh;
   background-color: black;
-  transition: bottom 100ms;
+  transition: bottom 40ms;
+  border-radius: 100%;
 }
