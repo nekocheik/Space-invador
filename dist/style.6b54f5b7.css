@@ -54,7 +54,7 @@ table {
   display: block;
   margin: auto;
 }
-.ctx div.playeur {
+.ctx div.player {
   position: absolute;
   width: 5vh;
   height: 5vh;
