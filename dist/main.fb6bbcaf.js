@@ -657,11 +657,11 @@ var enemiesConstructor = function enemiesConstructor(ctx) {
   var enemy = document.createElement('div');
   enemy.className = 'enemy';
   this.element = enemy;
-  var direction = 'right';
+  this.direction = 'right';
   ctx.appendChild(enemy);
 };
 
-enemiesConstructor.prototype.postion = function (ctx, maps, i) {
+enemiesConstructor.prototype.postion = function (numberCtx) {
   this.body = {
     topLeft: this.element.offsetLeft,
     topRight: this.element.offsetLeft + this.element.clientWidth,
@@ -669,20 +669,36 @@ enemiesConstructor.prototype.postion = function (ctx, maps, i) {
     bottomRight: this.element.clientHeight + this.element.clientWidth + this.element.offsetLeft
   };
 
-  if (this.body.bottomRight > maps.width || this.body.topLeft < 0 && this.ctx < 10) {
-    mapsElements[this.ctx].appendChild(this.element);
-    this.ctx++;
+  if (numberCtx < 9 && this.body.bottomRight >= maps[numberCtx].width || this.body.bottomLeft <= 0) {
+    console.log(this.element.style.left, this.body.bottomRight, maps[numberCtx].width);
+    numberCtx++;
+    maps[numberCtx].element.appendChild(this.element);
+    this.direction = this.direction === "right" ? "left" : "right";
+    return numberCtx;
+  } else {
+    return numberCtx;
   }
 };
 
-var moveEnemies = function moveEnemies(objet, element, speed, ctx, maps, mapsNumber) {
-  objet.postion(ctx, maps);
+var moveEnemies = function moveEnemies(objetChild, numberCtx, ctx, speed) {
+  numberCtx = objetChild.postion(numberCtx);
   setTimeout(function () {
-    element.style.left = "".concat(speed, "vw");
+    speed = changeDirection(objetChild.direction, objetChild.element, speed);
+    moveEnemies(objetChild, numberCtx, ctx, speed);
+  }, 50);
+};
+
+function changeDirection(direction, element, speed) {
+  if (direction === 'right') {
     speed++;
-    moveEnemies(objet, element, speed, ctx, maps);
-  }, 10);
-}; /////
+    element.style.left = "".concat(speed, "vw");
+  } else {
+    speed--;
+    element.style.left = "".concat(speed, "vw");
+  }
+
+  return speed;
+} /////
 
 
 var mapsElements = document.querySelectorAll('.ctx');
@@ -700,7 +716,7 @@ mapsConstructor.prototype.Mapping = function (i) {
   this.mapsNumber = i;
   this.width = this.element.clientWidth;
   this.height = this.element.clientHeight;
-  moveEnemies(this.child[0], this.child[0].element, 1, this.element, maps[i]);
+  moveEnemies(this.child[0], i, this.element, 0);
 };
 
 for (var i = 0; i < mapsElements.length; i++) {
@@ -789,7 +805,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "57933" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58924" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

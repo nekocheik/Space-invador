@@ -62,8 +62,8 @@ table {
   border: solid black 1px;
 }
 .ctx div.enemy {
-  width: 5vh;
-  height: 5vh;
+  width: 4vh;
+  height: 4vh;
   border: solid black 1px;
   position: absolute;
   display: inline-block;
