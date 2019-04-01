@@ -659,6 +659,7 @@ var enemiesConstructor = function enemiesConstructor(ctx) {
   enemy.className = 'enemy';
   this.element = enemy;
   this.direction = 'right';
+  this.jump = true;
   ctx.appendChild(enemy);
 };
 
@@ -674,7 +675,14 @@ enemiesConstructor.prototype.postion = function (numberCtx) {
 
   if (numberCtx < 9 && this.body.bottomRight >= maps[numberCtx].width || this.body.bottomLeft <= 0) {
     numberCtx++;
-    maps[numberCtx].element.appendChild(this.element);
+
+    if (numberCtx === 8) {
+      this.element.remove();
+      return;
+    }
+
+    ;
+    maps[numberCtx].element.prepend(this.element);
     this.direction = this.direction === "right" ? "left" : "right";
   }
 
@@ -684,14 +692,19 @@ enemiesConstructor.prototype.postion = function (numberCtx) {
 
 var moveEnemies = function moveEnemies(objetChild, numberCtx, ctx, speed) {
   numberCtx = objetChild.postion(numberCtx);
+
+  if (!numberCtx && numberCtx !== 0) {
+    return;
+  }
+
   setTimeout(function () {
-    speed = changeDirection(objetChild.direction, objetChild.element, speed);
+    speed = changeDirection(objetChild.direction, objetChild.element, speed, objetChild);
     moveEnemies(objetChild, numberCtx, ctx, speed);
   }, 50);
 }; // Move and change direction for enemy .
 
 
-function changeDirection(direction, element, speed) {
+function changeDirection(direction, element, speed, objetChild) {
   if (direction === 'right') {
     speed++;
     element.style.left = "".concat(speed, "vw");
@@ -709,14 +722,18 @@ var mapsConstructor = function mapsConstructor(element) {
   this.width = null;
   this.height = null;
   this.child = [];
-  this.child.push(new enemiesConstructor(element));
+  this.childElement = element;
 };
 
 mapsConstructor.prototype.Mapping = function (i) {
   this.mapsNumber = i;
   this.width = this.element.clientWidth;
   this.height = this.element.clientHeight;
-  moveEnemies(this.child[0], i, this.element, 0);
+
+  if (i < 7) {
+    this.child.push(new enemiesConstructor(this.childElement));
+    moveEnemies(this.child[0], i, this.element, 0);
+  }
 }; //  add maps .
 
 
@@ -729,21 +746,22 @@ for (var i = 0; i < mapsElements.length; i++) {
 } // creat shoot
 
 
-var shoots = [{
-  number: 0
-}]; // action shoot
+var shoots = {
+  number: 0 // index of shoot give the id of shoot .
+
+}; // action shoot
 
 document.addEventListener('keypress', function (event) {
   if (event.keyCode === 13) {
-    shoots.push(new shootConstructor());
-    shoots[shoots[0].number].move();
+    shoots[shoots.number + 1] = new shootConstructor();
+    shoots[shoots.number].move();
   }
 });
 
 var shootConstructor = function shootConstructor() {
   // Créate element .
-  shoots[0].number++;
-  this.numberOf = shoots[0].number;
+  shoots.number++;
+  this.numberOf = shoots.number;
   this.shoot = document.createElement('div');
   this.shoot.className = "shoot"; // Get position .
 
@@ -760,7 +778,7 @@ shootConstructor.prototype.move = function (element) {
 
   this.shoot.style.left = "".concat(this.owner.element.offsetLeft, "px");
   maps[9].element.appendChild(this.shoot);
-  shootMove(this.shoot, 0, shoots[shoots[0].number], 9);
+  shootMove(this.shoot, 0, shoots[this.numberOf], 9);
 }; // shoot move 
 
 
@@ -819,7 +837,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58924" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "51165" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

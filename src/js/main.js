@@ -46,6 +46,7 @@ var enemiesConstructor = function (ctx) {
   enemy.className = 'enemy';
   this.element = enemy ;
   this.direction = 'right';
+  this.jump = true ;
   ctx.appendChild(enemy);
 }
 
@@ -58,12 +59,14 @@ enemiesConstructor.prototype.postion = function ( numberCtx ) {
     bottomLeft : this.element.clientHeight + this.element.offsetLeft,
     bottomRight : this.element.clientHeight + this.element.clientWidth + this.element.offsetLeft ,
   }
-  
   // for ennemies to change direction .
-  
   if (( numberCtx < 9 ) && (this.body.bottomRight >= maps[numberCtx].width ) || (this.body.bottomLeft <= 0 ) ) {
     numberCtx++ ;
-    maps[numberCtx].element.appendChild(this.element)
+    if (numberCtx === 8) {
+      this.element.remove()
+      return
+    };
+    maps[numberCtx].element.prepend(this.element);
     this.direction = (( this.direction === "right" ) ? "left" : "right" );
   }
   return numberCtx
@@ -73,17 +76,20 @@ enemiesConstructor.prototype.postion = function ( numberCtx ) {
 
 var moveEnemies = function( objetChild , numberCtx , ctx , speed ){
   numberCtx = objetChild.postion( numberCtx );
+  if (!numberCtx && (numberCtx !== 0 ) ) {
+    return;
+  }
   setTimeout( function(){
-    speed = changeDirection(objetChild.direction , objetChild.element , speed ) ;
+    speed = changeDirection(objetChild.direction , objetChild.element , speed , objetChild  ) ;
     moveEnemies( objetChild , numberCtx , ctx , speed )
   } , 50 )
 }
 
 // Move and change direction for enemy .
 
-function changeDirection(direction , element , speed ) {
+function changeDirection(direction , element , speed , objetChild) {
   if (direction === 'right') {
-    speed++ ;
+    speed++ 
     element.style.left = `${speed}vw`;
   }else{
     speed-- ;
@@ -99,14 +105,17 @@ var mapsConstructor = function( element ){
   this.width = null ;
   this.height = null ;
   this.child = [] ;
-  this.child.push(new enemiesConstructor(element));
+  this.childElement = element ;
 }
 
 mapsConstructor.prototype.Mapping = function(i) {
   this.mapsNumber = i ;
   this.width = this.element.clientWidth ;
   this.height = this.element.clientHeight;
-  moveEnemies( this.child[0] , i , this.element , 0)
+  if ( i < 7 ) {
+    this.child.push(new enemiesConstructor(this.childElement ));
+    moveEnemies( this.child[0] , i , this.element , 0)
+  }
 }
 //  add maps .
 
@@ -121,22 +130,22 @@ for (let i = 0; i < mapsElements.length; i++) {
 
 // creat shoot
 
-var shoots = [
-  {number : 0 } , // index of shoot give the id of shoot .
-];
+var shoots = {
+  number : 0  , // index of shoot give the id of shoot .
+};
 
 // action shoot
 document.addEventListener('keypress', function(event){
   if (event.keyCode === 13 ) {
-    shoots.push(new shootConstructor());
-    shoots[shoots[0].number].move();
+    shoots[shoots.number + 1 ] = new shootConstructor();
+    shoots[shoots.number].move();
   }
 })
 
 var shootConstructor = function () {
   // Créate element .
-  shoots[0].number++;
-  this.numberOf = shoots[0].number ;
+  shoots.number++;
+  this.numberOf = shoots.number ;
   this.shoot = document.createElement('div') ;
   this.shoot.className = "shoot" ;
   // Get position .
@@ -153,10 +162,10 @@ shootConstructor.prototype.move = function (element){
   // this initial position of shoot .
   this.shoot.style.left = `${this.owner.element.offsetLeft}px` ;
   maps[9].element.appendChild(this.shoot);
-  shootMove( this.shoot , 0 , shoots[shoots[0].number] , 9)
+  shootMove( this.shoot , 0 , shoots[this.numberOf] , 9)
 }
 
- // shoot move 
+// shoot move 
 
 function shootMove(element , y , objet , i ) {
   // position Y of shoot
@@ -168,7 +177,7 @@ function shootMove(element , y , objet , i ) {
       element.remove()
       return
     }
-     // move whene the shoot change the map
+    // move whene the shoot change the map
     maps[i].element.appendChild(element);
     let speed = y -  maps[i].height ;
     element.style.bottom = `${speed}px` ;
