@@ -14,7 +14,7 @@ var player = {
 
 const Move = {
   x : 1 ,
-  speed : 2,
+  speed : 4,
   ArrowRight : function(){ this.x = this.x + this.speed ;
     player.postion.x = this.x ;
     return player.postion.x = this.x ;
@@ -51,8 +51,8 @@ var enemiesConstructor = function (ctx) {
 }
 
 enemiesConstructor.prototype.postion = function ( numberCtx ) {
+
   // the hitbox of en player .
-  
   this.body = {
     topLeft : this.element.offsetLeft ,
     topRight : this.element.offsetLeft + this.element.clientWidth ,
@@ -82,7 +82,7 @@ var moveEnemies = function( objetChild , numberCtx , ctx , speed ){
   setTimeout( function(){
     speed = changeDirection(objetChild.direction , objetChild.element , speed , objetChild  ) ;
     moveEnemies( objetChild , numberCtx , ctx , speed )
-  } , 50 )
+  } , 1000 )
 }
 
 // Move and change direction for enemy .
@@ -162,12 +162,12 @@ shootConstructor.prototype.move = function (element){
   // this initial position of shoot .
   this.shoot.style.left = `${this.owner.element.offsetLeft}px` ;
   maps[9].element.appendChild(this.shoot);
-  shootMove( this.shoot , 0 , shoots[this.numberOf] , 9)
+  shootMove( this.shoot , 0 , shoots[this.numberOf] , 9 , this.owner.element.offsetLeft )
 }
 
 // shoot move 
 
-function shootMove(element , y , objet , i ) {
+function shootMove(element , y , objet , i , x ) {
   // position Y of shoot
   objet.y = y ;
   if ( maps[i] && ( maps[i].height < y )) {
@@ -177,18 +177,25 @@ function shootMove(element , y , objet , i ) {
       element.remove()
       return
     }
+    if (maps[i].child[0]) {
+      if ( x < maps[i].child[0].body.bottomRight && x > maps[i].child[0].body.bottomLeft ) {
+        maps[i].child[0].element.remove();
+        console.log(element.remove())
+        return
+      }
+    }
     // move whene the shoot change the map
     maps[i].element.appendChild(element);
     let speed = y -  maps[i].height ;
     element.style.bottom = `${speed}px` ;
-    shootMove(element , speed , objet , i  )
+    shootMove(element , speed , objet , i , x )
   }else{
     setTimeout( ( function(){ 
       // move Classique
       let speed = 20 + y ;
       element.style.bottom = `${speed}px` ;
-      shootMove(element , speed , objet , i  )
-    } ),100)
+      shootMove(element , speed , objet , i , x )
+    } ),80)
   }
 }
 

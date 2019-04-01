@@ -633,7 +633,7 @@ var player = {
 };
 var Move = {
   x: 1,
-  speed: 2,
+  speed: 4,
   ArrowRight: function ArrowRight() {
     this.x = this.x + this.speed;
     player.postion.x = this.x;
@@ -700,7 +700,7 @@ var moveEnemies = function moveEnemies(objetChild, numberCtx, ctx, speed) {
   setTimeout(function () {
     speed = changeDirection(objetChild.direction, objetChild.element, speed, objetChild);
     moveEnemies(objetChild, numberCtx, ctx, speed);
-  }, 50);
+  }, 1000);
 }; // Move and change direction for enemy .
 
 
@@ -778,11 +778,11 @@ shootConstructor.prototype.move = function (element) {
 
   this.shoot.style.left = "".concat(this.owner.element.offsetLeft, "px");
   maps[9].element.appendChild(this.shoot);
-  shootMove(this.shoot, 0, shoots[this.numberOf], 9);
+  shootMove(this.shoot, 0, shoots[this.numberOf], 9, this.owner.element.offsetLeft);
 }; // shoot move 
 
 
-function shootMove(element, y, objet, i) {
+function shootMove(element, y, objet, i, x) {
   // position Y of shoot
   objet.y = y;
 
@@ -793,20 +793,28 @@ function shootMove(element, y, objet, i) {
       // if map is undefined remove
       element.remove();
       return;
+    }
+
+    if (maps[i].child[0]) {
+      if (x < maps[i].child[0].body.bottomRight && x > maps[i].child[0].body.bottomLeft) {
+        maps[i].child[0].element.remove();
+        console.log(element.remove());
+        return;
+      }
     } // move whene the shoot change the map
 
 
     maps[i].element.appendChild(element);
     var speed = y - maps[i].height;
     element.style.bottom = "".concat(speed, "px");
-    shootMove(element, speed, objet, i);
+    shootMove(element, speed, objet, i, x);
   } else {
     setTimeout(function () {
       // move Classique
       var speed = 20 + y;
       element.style.bottom = "".concat(speed, "px");
-      shootMove(element, speed, objet, i);
-    }, 100);
+      shootMove(element, speed, objet, i, x);
+    }, 80);
   }
 }
 },{"events":"../node_modules/events/events.js","domain":"../node_modules/domain-browser/source/index.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
@@ -837,7 +845,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "51165" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55508" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
