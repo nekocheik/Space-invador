@@ -1,41 +1,25 @@
-import { prototype } from "events";
-import { create } from "domain";
-// Player .
-var getPosition = function (element , position ){
-    let positionX =  element.offsetLeft + (element.clientWidth / 2 );
-    let positionY =  element.clientTop + (element.clientHeight / 2 );
-     if(position === 'x' ){
-       return positionX
-     }else{
-       return positionY
-     }
- }
- 
+//Player.
 
-var creatPlayer = function() {
-  this.element = document.querySelector('.ctx .player') 
+var player = {
+  element :  document.querySelector('.ctx .player') ,
+  postion : {
+    x : 0 ,
+    y : 0 
+  },
 }
-
-creatPlayer.prototype.position= function () {
-  this.x =  getPosition(this.element , 'x')
-  this.y = getPosition(this.element , 'Y')
-}
-
-var player = new creatPlayer() ;
-setInterval( player.position(), 50 )
-console.log(player)
-
 
 //that the player move .
 
 const Move = {
   x : 1 ,
   speed : 4,
-  ArrowRight : function(){
-    return this.x+= this.speed ;
+  ArrowRight : function(){ this.x = this.x + this.speed ;
+    player.postion.x = this.x ;
+    return player.postion.x = this.x ;
   } ,
-  ArrowLeft : function(){ 
-    return this.x -= this.speed ;
+  ArrowLeft : function(){ this.x = this.x - this.speed ;
+    player.x = this.x ;
+    return player.postion.x = this.x;
   } ,
 };
 
@@ -43,7 +27,7 @@ const Move = {
 
 document.addEventListener('keydown', () => {
   if( event.key === "ArrowRight" || event.key === "ArrowLeft" ) {
-    player.element.style.left = `${Move[event.key](player) / 3 }vw` ;
+    player.element.style.left = `${Move[event.key](player)}vw` ;
   }
 });
 
@@ -66,29 +50,30 @@ var enemiesConstructor = function (ctx) {
 
 enemiesConstructor.prototype.postion = function ( numberCtx ) {
   if (!this.life) { return }
-    this.topLeft = this.element.offsetLeft ;
-    this.topRight = this.element.offsetLeft + this.element.clientWidth ;
-    this.bottomLeft = this.element.clientHeight + this.element.offsetLeft ;
-    this.bottomRight = this.element.clientHeight + this.element.clientWidth + this.element.offsetLeft ;
+  // the hitbox of en player .
+  this.body = {
+    topLeft : this.element.offsetLeft ,
+    topRight : this.element.offsetLeft + this.element.clientWidth ,
+    bottomLeft : this.element.clientHeight + this.element.offsetLeft,
+    bottomRight : this.element.clientHeight + this.element.clientWidth + this.element.offsetLeft ,
+  }
+  // for ennemies to change direction .
+  if (( numberCtx < 9 ) && (this.body.bottomRight >= maps[numberCtx].width ) || (this.body.bottomLeft <= 0 ) ) {
+    numberCtx++ ;
+    if (numberCtx === 8) {
+      this.element.remove()
+      return
+    };
+    maps[numberCtx].element.prepend(this.element);
+    this.direction = (( this.direction === "right" ) ? "left" : "right" );
+  }
+  return numberCtx
 }
+
 enemiesConstructor.prototype.removeObjet = function (){
   this.life = false ;
   this.element.remove();
 }
-  // for ennemies to change direction .
-
-  // if (( numberCtx < 9 ) && (this.body.bottomRight >= maps[numberCtx].width ) || (this.body.bottomLeft <= 0 ) ) {
-  //   numberCtx++ ;
-  //   if (numberCtx === 8) {
-  //     this.element.remove()
-  //     return
-  //   };
-  //   maps[numberCtx].element.prepend(this.element);
-  //   this.direction = (( this.direction === "right" ) ? "left" : "right" );
-  // }
-  // return numberCtx
-
-
 // setTimeout récursif for créat move enemy .
 
 var moveEnemies = function( objetChild , numberCtx , ctx , speed ){
@@ -174,8 +159,8 @@ var shootConstructor = function () {
 
 shootConstructor.prototype.move = function (element){
   // Get position .
-  this.y = this.owner.y ;
-  this.x = this.owner.x ;
+  this.y = this.owner.postion.y ;
+  this.x = this.owner.postion.x ;
   // this initial position of shoot .
   this.shoot.style.left = `${this.owner.element.offsetLeft}px` ;
   maps[9].element.appendChild(this.shoot);

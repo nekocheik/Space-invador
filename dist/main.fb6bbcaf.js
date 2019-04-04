@@ -623,32 +623,44 @@ var _events = require("events");
 var _domain = require("domain");
 
 // Player .
-var player = {
-  element: document.querySelector('.ctx .player'),
-  postion: {
-    x: 0,
-    y: 0
-  } //that the player move .
+var getPosition = function getPosition(element, position) {
+  var positionX = element.offsetLeft + element.clientWidth / 2;
+  var positionY = element.clientTop + element.clientHeight / 2;
 
+  if (position === 'x') {
+    return positionX;
+  } else {
+    return positionY;
+  }
 };
+
+var creatPlayer = function creatPlayer() {
+  this.element = document.querySelector('.ctx .player');
+};
+
+creatPlayer.prototype.position = function () {
+  this.x = getPosition(this.element, 'x');
+  this.y = getPosition(this.element, 'Y');
+};
+
+var player = new creatPlayer();
+setInterval(player.position(), 50);
+console.log(player); //that the player move .
+
 var Move = {
   x: 1,
   speed: 4,
   ArrowRight: function ArrowRight() {
-    this.x = this.x + this.speed;
-    player.postion.x = this.x;
-    return player.postion.x = this.x;
+    return this.x += this.speed;
   },
   ArrowLeft: function ArrowLeft() {
-    this.x = this.x - this.speed;
-    player.x = this.x;
-    return player.postion.x = this.x;
+    return this.x -= this.speed;
   }
 }; // Event for player move .
 
 document.addEventListener('keydown', function () {
   if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
-    player.element.style.left = "".concat(Move[event.key](player), "vw");
+    player.element.style.left = "".concat(Move[event.key](player) / 3, "vw");
   }
 }); // Create enemies .
 
@@ -659,35 +671,36 @@ var enemiesConstructor = function enemiesConstructor(ctx) {
   enemy.className = 'enemy';
   this.element = enemy;
   this.direction = 'right';
-  this.jump = true;
+  this.life = true;
   ctx.appendChild(enemy);
 };
 
 enemiesConstructor.prototype.postion = function (numberCtx) {
-  // the hitbox of en player .
-  this.body = {
-    topLeft: this.element.offsetLeft,
-    topRight: this.element.offsetLeft + this.element.clientWidth,
-    bottomLeft: this.element.clientHeight + this.element.offsetLeft,
-    bottomRight: this.element.clientHeight + this.element.clientWidth + this.element.offsetLeft // for ennemies to change direction .
-
-  };
-
-  if (numberCtx < 9 && this.body.bottomRight >= maps[numberCtx].width || this.body.bottomLeft <= 0) {
-    numberCtx++;
-
-    if (numberCtx === 8) {
-      this.element.remove();
-      return;
-    }
-
-    ;
-    maps[numberCtx].element.prepend(this.element);
-    this.direction = this.direction === "right" ? "left" : "right";
+  if (!this.life) {
+    return;
   }
 
-  return numberCtx;
-}; // setTimeout récursif for créat move enemy .
+  this.topLeft = this.element.offsetLeft;
+  this.topRight = this.element.offsetLeft + this.element.clientWidth;
+  this.bottomLeft = this.element.clientHeight + this.element.offsetLeft;
+  this.bottomRight = this.element.clientHeight + this.element.clientWidth + this.element.offsetLeft;
+};
+
+enemiesConstructor.prototype.removeObjet = function () {
+  this.life = false;
+  this.element.remove();
+}; // for ennemies to change direction .
+// if (( numberCtx < 9 ) && (this.body.bottomRight >= maps[numberCtx].width ) || (this.body.bottomLeft <= 0 ) ) {
+//   numberCtx++ ;
+//   if (numberCtx === 8) {
+//     this.element.remove()
+//     return
+//   };
+//   maps[numberCtx].element.prepend(this.element);
+//   this.direction = (( this.direction === "right" ) ? "left" : "right" );
+// }
+// return numberCtx
+// setTimeout récursif for créat move enemy .
 
 
 var moveEnemies = function moveEnemies(objetChild, numberCtx, ctx, speed) {
@@ -773,8 +786,8 @@ var shootConstructor = function shootConstructor() {
 
 shootConstructor.prototype.move = function (element) {
   // Get position .
-  this.y = this.owner.postion.y;
-  this.x = this.owner.postion.x; // this initial position of shoot .
+  this.y = this.owner.y;
+  this.x = this.owner.x; // this initial position of shoot .
 
   this.shoot.style.left = "".concat(this.owner.element.offsetLeft, "px");
   maps[9].element.appendChild(this.shoot);
@@ -797,8 +810,8 @@ function shootMove(element, y, objet, i, x) {
 
     if (maps[i].child[0]) {
       if (x < maps[i].child[0].body.bottomRight && x > maps[i].child[0].body.bottomLeft) {
-        maps[i].child[0].element.remove();
-        console.log(element.remove());
+        maps[i].child[0].removeObjet();
+        console.log(element.remove(), maps[i].child[0]);
         return;
       }
     } // move whene the shoot change the map
@@ -845,7 +858,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55508" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49208" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
