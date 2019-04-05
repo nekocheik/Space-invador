@@ -624,17 +624,27 @@ var _domain = require("domain");
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
-// Player .
 var getPosition = function getPosition(element, position) {
+  if (!element) {
+    console.error(' ---- getPosition ---- as not a element on the function');
+    return;
+  }
+
   var positionX = element.offsetLeft + element.clientWidth / 2;
   var positionY = element.clientTop + element.clientHeight / 2;
+  var center = element.offsetLeft + element.clientWidth / 2 - (element.clientTop + element.clientHeight / 2);
 
   if (position === 'x') {
     return positionX;
-  } else {
+  } else if (position === 'y') {
     return positionY;
+  } else {
+    return center;
   }
-};
+}; //_______________________________________________________________________________________________________________________________________
+//_________________________________________________________ Player__________________________________________________________________________//
+//__________________________________________________________________________________________________________________________________________
+
 
 var creatPlayer = function creatPlayer() {
   this.element = document.querySelector('.ctx .player');
@@ -642,12 +652,17 @@ var creatPlayer = function creatPlayer() {
 
 creatPlayer.prototype.position = function () {
   this.x = getPosition(this.element, 'x');
-  this.y = getPosition(this.element, 'Y');
-};
+  this.y = getPosition(this.element, 'y');
+  this.center = getPosition(this.element, 'center'); //console.log('get the position is true' , this.center , this.y , this.x )
+}; ///--- create a player ---///
 
-var player = new creatPlayer();
-setInterval(player.position(), 50);
-console.log(player); //that the player move .
+
+var player = new creatPlayer(); ///--- interval for get the position of the player ---///
+
+setInterval(function () {
+  player.position();
+}, 50);
+player.position(); ////---- player move  ----////
 
 var Move = {
   x: 1,
@@ -664,9 +679,12 @@ document.addEventListener('keydown', function () {
   if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
     player.element.style.left = "".concat(Move[event.key](player) / 3, "vw");
   }
-}); // Create enemies .
+}); //_______________________________________________________________________________________________________________________________________
+//_________________________________________________________ enemies __________________________________________________________________________//
+//__________________________________________________________________________________________________________________________________________
+///--- Array where the enemies will go --- -/ Array enemies /- ///
 
-var enemies = []; // Constructor enemies .
+var enemies = []; ///--- Constructor for enemies ---///
 
 var enemiesConstructor = function enemiesConstructor(ctx) {
   var enemy = document.createElement('div');
@@ -675,35 +693,33 @@ var enemiesConstructor = function enemiesConstructor(ctx) {
   this.direction = 'right';
   this.life = true;
   ctx.appendChild(enemy);
-};
+}; ///--- Get enemies position ---///
+
 
 enemiesConstructor.prototype.postion = function (numberCtx) {
   if (!this.life) {
     return;
   }
 
+  this.x = getPosition(this.element, 'x');
+  this.y = getPosition(this.element, 'y');
+  this.center = getPosition(this.element, 'center');
+  this.hitbox();
+}; ///--- Create hitbox ---///
+
+
+enemiesConstructor.prototype.hitbox = function () {
   this.topLeft = this.element.offsetLeft;
   this.topRight = this.element.offsetLeft + this.element.clientWidth;
   this.bottomLeft = this.element.clientHeight + this.element.offsetLeft;
   this.bottomRight = this.element.clientHeight + this.element.clientWidth + this.element.offsetLeft;
-};
+}; ///---Remove the enemy ---///
+
 
 enemiesConstructor.prototype.removeObjet = function () {
   this.life = false;
-  this.element.remove();
-}; // for ennemies to change direction .
-// if (( numberCtx < 9 ) && (this.body.bottomRight >= maps[numberCtx].width ) || (this.body.bottomLeft <= 0 ) ) {
-//   numberCtx++ ;
-//   if (numberCtx === 8) {
-//     this.element.remove()
-//     return
-//   };
-//   maps[numberCtx].element.prepend(this.element);
-//   this.direction = (( this.direction === "right" ) ? "left" : "right" );
-// }
-// return numberCtx
-// setTimeout récursif for créat move enemy .
-
+  this.remove();
+};
 
 var moveEnemies = function moveEnemies(objetChild, numberCtx, ctx, speed) {
   numberCtx = objetChild.postion(numberCtx);
@@ -716,7 +732,19 @@ var moveEnemies = function moveEnemies(objetChild, numberCtx, ctx, speed) {
     speed = changeDirection(objetChild.direction, objetChild.element, speed, objetChild);
     moveEnemies(objetChild, numberCtx, ctx, speed);
   }, 1000);
-}; // Move and change direction for enemy .
+}; // for ennemies to change direction .
+// if (( numberCtx < 9 ) && (this.body.bottomRight >= maps[numberCtx].width ) || (this.body.bottomLeft <= 0 ) ) {
+//   numberCtx++ ;
+//   if (numberCtx === 8) {
+//     this.element.remove()
+//     return
+//   };
+//   maps[numberCtx].element.prepend(this.element);
+//   this.direction = (( this.direction === "right" ) ? "left" : "right" );
+// }
+// return numberCtx
+// setTimeout récursif for créat move enemy .
+// Move and change direction for enemy .
 
 
 function changeDirection(direction, element, speed, objetChild) {
@@ -758,28 +786,29 @@ var maps = [];
 for (var i = 0; i < mapsElements.length; i++) {
   maps[i] = new mapsConstructor(mapsElements[i]);
   maps[i].Mapping(i);
-} // creat shoot
+} //_______________________________________________________________________________________________________________________________________
+//_________________________________________________________ shoot__________________________________________________________________________//
+//__________________________________________________________________________________________________________________________________________
+///--- shoot object ---///
 
 
 var shoots = {
   number: 0 // index of shoot give the id of shoot .
 
-}; // action shoot
+}; ///--- action shoot ---//
 
 document.addEventListener('keypress', function (event) {
   if (event.keyCode === 13) {
     shoots[shoots.number + 1] = new shootConstructor();
-    shoots[shoots.number].move();
+    shoots[shoots.number].move(); // add action move for element who is comming creat //
   }
 });
 
 var shootConstructor = function shootConstructor() {
-  // Créate element .
   shoots.number++;
   this.numberOf = shoots.number;
   this.shoot = document.createElement('div');
-  this.shoot.className = "shoot"; // Get position .
-
+  this.shoot.className = "shoot";
   this.y = null;
   this.x = null;
   this.owner = player;
@@ -791,10 +820,10 @@ shootConstructor.prototype.move = function (element) {
   this.y = this.owner.y;
   this.x = this.owner.x; // this initial position of shoot .
 
-  this.shoot.style.left = "".concat(this.owner.element.offsetLeft, "px");
+  this.shoot.style.left = "".concat(this.owner.center + this.owner.element.clientHeight / 2, "px");
   maps[9].element.appendChild(this.shoot);
-  shootMove(this.shoot, 0, shoots[this.numberOf], 9, this.owner.element.offsetLeft);
-}; // shoot move 
+  shootMove(this.shoot, 0, shoots[this.numberOf], 9, this.owner.center);
+}; ///---shoot move---///
 
 
 function shootMove(element, y, objet, i, x) {
@@ -805,7 +834,7 @@ function shootMove(element, y, objet, i, x) {
     i--;
 
     if (i === -1) {
-      // if map is undefined remove
+      ///---if map is undefined remove---//
       element.remove();
       return;
     }
@@ -816,7 +845,7 @@ function shootMove(element, y, objet, i, x) {
         console.log(element.remove(), maps[i].child[0]);
         return;
       }
-    } // move whene the shoot change the map ///
+    } ///--- move whene the shoot change the map---///
 
 
     maps[i].element.appendChild(element);

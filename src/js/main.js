@@ -1,32 +1,49 @@
 import { prototype } from "events";
 import { create } from "domain";
-// Player .
+
 var getPosition = function (element , position ){
-    let positionX =  element.offsetLeft + (element.clientWidth / 2 );
-    let positionY =  element.clientTop + (element.clientHeight / 2 );
-     if(position === 'x' ){
-       return positionX
-     }else{
-       return positionY
-     }
- }
- 
+  if (!element) {
+    console.error(' ---- getPosition ---- as not a element on the function');
+    return
+  }
+  let positionX =  element.offsetLeft + (element.clientWidth / 2 );
+  let positionY =  element.clientTop + (element.clientHeight / 2 );
+  let center =  ( element.offsetLeft + (element.clientWidth / 2 ) ) - (element.clientTop + (element.clientHeight / 2 ) ) ;
+  if(position === 'x' ){
+    return positionX ;
+  }else if( position === 'y'){
+    return positionY ;
+  }else{
+    return center ;
+  }
+}
+
+
+//_______________________________________________________________________________________________________________________________________
+//_________________________________________________________ Player__________________________________________________________________________//
+//__________________________________________________________________________________________________________________________________________
 
 var creatPlayer = function() {
-  this.element = document.querySelector('.ctx .player') 
+  this.element = document.querySelector('.ctx .player') ;
 }
 
 creatPlayer.prototype.position= function () {
-  this.x =  getPosition(this.element , 'x')
-  this.y = getPosition(this.element , 'Y')
+  this.x =  getPosition(this.element , 'x');
+  this.y = getPosition(this.element , 'y');
+  this.center = getPosition(this.element , 'center');
+  //console.log('get the position is true' , this.center , this.y , this.x )
 }
-
+///--- create a player ---///
 var player = new creatPlayer() ;
-setInterval( player.position(), 50 )
-console.log(player)
 
+///--- interval for get the position of the player ---///
 
-//that the player move .
+setInterval( function(){
+  player.position()
+} , 50 )
+player.position()
+
+////---- player move  ----////
 
 const Move = {
   x : 1 ,
@@ -46,14 +63,14 @@ document.addEventListener('keydown', () => {
     player.element.style.left = `${Move[event.key](player) / 3 }vw` ;
   }
 });
+//_______________________________________________________________________________________________________________________________________
+//_________________________________________________________ enemies __________________________________________________________________________//
+//__________________________________________________________________________________________________________________________________________
 
-
-
-// Create enemies .
-
+///--- Array where the enemies will go --- -/ Array enemies /- ///
 var enemies = [] ;
 
-// Constructor enemies .
+///--- Constructor for enemies ---///
 
 var enemiesConstructor = function (ctx) {
   var enemy = document.createElement('div');
@@ -64,32 +81,32 @@ var enemiesConstructor = function (ctx) {
   ctx.appendChild(enemy);
 }
 
+///--- Get enemies position ---///
+
 enemiesConstructor.prototype.postion = function ( numberCtx ) {
   if (!this.life) { return }
-    this.topLeft = this.element.offsetLeft ;
-    this.topRight = this.element.offsetLeft + this.element.clientWidth ;
-    this.bottomLeft = this.element.clientHeight + this.element.offsetLeft ;
-    this.bottomRight = this.element.clientHeight + this.element.clientWidth + this.element.offsetLeft ;
+  this.x =  getPosition(this.element , 'x');
+  this.y = getPosition(this.element , 'y');
+  this.center = getPosition(this.element , 'center');
+  this.hitbox();
 }
+
+///--- Create hitbox ---///
+
+enemiesConstructor.prototype.hitbox = function () {
+  this.topLeft = this.element.offsetLeft ;
+  this.topRight = this.element.offsetLeft + this.element.clientWidth ;
+  this.bottomLeft = this.element.clientHeight + this.element.offsetLeft ;
+  this.bottomRight = this.element.clientHeight + this.element.clientWidth + this.element.offsetLeft ;
+}
+
+///---Remove the enemy ---///
+
 enemiesConstructor.prototype.removeObjet = function (){
   this.life = false ;
-  this.element.remove();
+  this.remove();
 }
-  // for ennemies to change direction .
 
-  // if (( numberCtx < 9 ) && (this.body.bottomRight >= maps[numberCtx].width ) || (this.body.bottomLeft <= 0 ) ) {
-  //   numberCtx++ ;
-  //   if (numberCtx === 8) {
-  //     this.element.remove()
-  //     return
-  //   };
-  //   maps[numberCtx].element.prepend(this.element);
-  //   this.direction = (( this.direction === "right" ) ? "left" : "right" );
-  // }
-  // return numberCtx
-
-
-// setTimeout récursif for créat move enemy .
 
 var moveEnemies = function( objetChild , numberCtx , ctx , speed ){
   numberCtx = objetChild.postion( numberCtx );
@@ -101,6 +118,22 @@ var moveEnemies = function( objetChild , numberCtx , ctx , speed ){
     moveEnemies( objetChild , numberCtx , ctx , speed )
   } , 1000 )
 }
+// for ennemies to change direction .
+
+// if (( numberCtx < 9 ) && (this.body.bottomRight >= maps[numberCtx].width ) || (this.body.bottomLeft <= 0 ) ) {
+//   numberCtx++ ;
+//   if (numberCtx === 8) {
+//     this.element.remove()
+//     return
+//   };
+//   maps[numberCtx].element.prepend(this.element);
+//   this.direction = (( this.direction === "right" ) ? "left" : "right" );
+// }
+// return numberCtx
+
+
+// setTimeout récursif for créat move enemy .
+
 
 // Move and change direction for enemy .
 
@@ -145,27 +178,29 @@ for (let i = 0; i < mapsElements.length; i++) {
 }
 
 
-// creat shoot
 
+//_______________________________________________________________________________________________________________________________________
+//_________________________________________________________ shoot__________________________________________________________________________//
+//__________________________________________________________________________________________________________________________________________
+
+///--- shoot object ---///
 var shoots = {
   number : 0  , // index of shoot give the id of shoot .
 };
 
-// action shoot
+///--- action shoot ---//
 document.addEventListener('keypress', function(event){
   if (event.keyCode === 13 ) {
     shoots[shoots.number + 1 ] = new shootConstructor();
-    shoots[shoots.number].move();
+    shoots[shoots.number].move(); // add action move for element who is comming creat //
   }
 })
 
 var shootConstructor = function () {
-  // Créate element .
   shoots.number++;
   this.numberOf = shoots.number ;
   this.shoot = document.createElement('div') ;
   this.shoot.className = "shoot" ;
-  // Get position .
   this.y = null;
   this.x = null ;
   this.owner = player ;
@@ -174,15 +209,21 @@ var shootConstructor = function () {
 
 shootConstructor.prototype.move = function (element){
   // Get position .
+  
   this.y = this.owner.y ;
   this.x = this.owner.x ;
+  
+  
   // this initial position of shoot .
-  this.shoot.style.left = `${this.owner.element.offsetLeft}px` ;
+  
+  this.shoot.style.left = `${this.owner.center + ( this.owner.element.clientHeight / 2 ) }px` ;
   maps[9].element.appendChild(this.shoot);
-  shootMove( this.shoot , 0 , shoots[this.numberOf] , 9 , this.owner.element.offsetLeft )
+  shootMove( this.shoot , 0 , shoots[this.numberOf] , 9 , this.owner.center )
+  
+  
 }
 
-// shoot move 
+///---shoot move---///
 
 function shootMove(element , y , objet , i , x ) {
   // position Y of shoot
@@ -190,7 +231,7 @@ function shootMove(element , y , objet , i , x ) {
   if ( maps[i] && ( maps[i].height < y )) {
     i--;
     if ( i === -1 ) { 
-      // if map is undefined remove
+      ///---if map is undefined remove---//
       element.remove()
       return
     }
@@ -201,7 +242,7 @@ function shootMove(element , y , objet , i , x ) {
         return
       }
     }
-    // move whene the shoot change the map ///
+    ///--- move whene the shoot change the map---///
     maps[i].element.appendChild(element);
     let speed = y -  maps[i].height ;
     element.style.bottom = `${speed}px` ;
@@ -226,7 +267,7 @@ function destrutor(element) {
     return
   }
   if ( typeof element === 'object' ) {
-   element.element.remove()
+    element.element.remove()
   }
 }
 
