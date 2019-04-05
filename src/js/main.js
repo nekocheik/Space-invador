@@ -201,7 +201,7 @@ function shootMove(element , y , objet , i , x ) {
         return
       }
     }
-    // move whene the shoot change the map
+    // move whene the shoot change the map ///
     maps[i].element.appendChild(element);
     let speed = y -  maps[i].height ;
     element.style.bottom = `${speed}px` ;
@@ -215,4 +215,20 @@ function shootMove(element , y , objet , i , x ) {
     } ),80)
   }
 }
+
+////---Remove objet---//// 
+
+let check = document.createElement('div');
+
+function destrutor(element) {
+  if (!element) {
+    console.error('----- destrutor ---- add a element your are forget ?')
+    return
+  }
+  if ( typeof element === 'object' ) {
+   element.element.remove()
+  }
+}
+
+
 

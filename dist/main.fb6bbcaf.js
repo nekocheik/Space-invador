@@ -622,6 +622,8 @@ var _events = require("events");
 
 var _domain = require("domain");
 
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
 // Player .
 var getPosition = function getPosition(element, position) {
   var positionX = element.offsetLeft + element.clientWidth / 2;
@@ -814,7 +816,7 @@ function shootMove(element, y, objet, i, x) {
         console.log(element.remove(), maps[i].child[0]);
         return;
       }
-    } // move whene the shoot change the map
+    } // move whene the shoot change the map ///
 
 
     maps[i].element.appendChild(element);
@@ -828,6 +830,20 @@ function shootMove(element, y, objet, i, x) {
       element.style.bottom = "".concat(speed, "px");
       shootMove(element, speed, objet, i, x);
     }, 80);
+  }
+} ////---Remove objet---//// 
+
+
+var check = document.createElement('div');
+
+function destrutor(element) {
+  if (!element) {
+    console.error('----- destrutor ---- add a element your are forget ?');
+    return;
+  }
+
+  if (_typeof(element) === 'object') {
+    element.element.remove();
   }
 }
 },{"events":"../node_modules/events/events.js","domain":"../node_modules/domain-browser/source/index.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
@@ -858,7 +874,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49208" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49808" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
