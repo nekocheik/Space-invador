@@ -1,6 +1,8 @@
 import { prototype } from "events";
 import { create } from "domain";
 
+//_________________________________________________________ -fuction get position- __________________________________________________________________________//
+
 var getPosition = function (element , position ){
   if (!element) {
     console.error(' ---- getPosition ---- as not a element on the function');
@@ -64,212 +66,213 @@ document.addEventListener('keydown', () => {
   }
 });
 //_______________________________________________________________________________________________________________________________________
-//_________________________________________________________ enemies __________________________________________________________________________//
+/////_________________________________________________________ enemies __________________________________________________________________________/
 //__________________________________________________________________________________________________________________________________________
 
-///--- Array where the enemies will go --- -/ Array enemies /- ///
+///--- Array where the enemy will go --- -/ Array enemies /- ///
 var enemies = [] ;
 
-///--- Constructor for enemies ---///
-
-var enemiesConstructor = function (ctx) {
+///--- Constructor for enemy ---///
+var enemy = function (ctx , numberCtx ) {
   var enemy = document.createElement('div');
   enemy.className = 'enemy';
   this.element = enemy ;
   this.direction = 'right';
-  this.life= true ;
   ctx.appendChild(enemy);
+  this.speed = 0 ;
+  
+  // call the new position for do the move //
+  this.getPosition(numberCtx);
 }
 
-///--- Get enemies position ---///
-
-enemiesConstructor.prototype.postion = function ( numberCtx ) {
-  if (!this.life) { return }
-  this.x =  getPosition(this.element , 'x');
-  this.y = getPosition(this.element , 'y');
-  this.center = getPosition(this.element , 'center');
+///--- Get enemy position ---///
+enemy.prototype.getPosition = function ( numberCtx ) {
+  this.numberCtx = numberCtx;
+  this.positions = {
+    x :  getPosition(this.element , 'x'),
+    y : getPosition(this.element , 'y'),
+    center : getPosition(this.element , 'center'),
+  }
   this.hitbox();
 }
 
 ///--- Create hitbox ---///
 
-enemiesConstructor.prototype.hitbox = function () {
-  this.topLeft = this.element.offsetLeft ;
-  this.topRight = this.element.offsetLeft + this.element.clientWidth ;
-  this.bottomLeft = this.element.clientHeight + this.element.offsetLeft ;
-  this.bottomRight = this.element.clientHeight + this.element.clientWidth + this.element.offsetLeft ;
-}
-
-///---Remove the enemy ---///
-
-enemiesConstructor.prototype.removeObjet = function (){
-  this.life = false ;
-  this.remove();
-}
-
-
-var moveEnemies = function( objetChild , numberCtx , ctx , speed ){
-  numberCtx = objetChild.postion( numberCtx );
-  if (!numberCtx && (numberCtx !== 0 ) ) {
-    return;
+enemy.prototype.hitbox = function () {
+  this.body = {
+    topLeft : this.element.offsetLeft ,
+    topRight : this.element.offsetLeft + this.element.clientWidth ,
+    bottomLeft : this.element.clientHeight + this.element.offsetLeft ,
+    bottomRight : this.element.clientHeight + this.element.clientWidth + this.element.offsetLeft ,
   }
-  setTimeout( function(){
-    speed = changeDirection(objetChild.direction , objetChild.element , speed , objetChild  ) ;
-    moveEnemies( objetChild , numberCtx , ctx , speed )
-  } , 1000 )
+  this.wall()
 }
-// for ennemies to change direction .
-
-// if (( numberCtx < 9 ) && (this.body.bottomRight >= maps[numberCtx].width ) || (this.body.bottomLeft <= 0 ) ) {
-//   numberCtx++ ;
-//   if (numberCtx === 8) {
-//     this.element.remove()
-//     return
-//   };
-//   maps[numberCtx].element.prepend(this.element);
-//   this.direction = (( this.direction === "right" ) ? "left" : "right" );
-// }
-// return numberCtx
 
 
-// setTimeout récursif for créat move enemy .
+///--- detect if touche the wall ---///
 
-
-// Move and change direction for enemy .
-
-function changeDirection(direction , element , speed , objetChild) {
-  if (direction === 'right') {
-    speed++ 
-    element.style.left = `${speed}vw`;
+enemy.prototype.wall = function(){
+  ////////// ----- console.log( this.numberCtx  , this.body.bottomRight , maps[this.numberCtx].width  , this.body.bottomLeft ) ----- ////////// 
+  if (( this.numberCtx< 9 ) && ( this.body.bottomRight <= maps[this.numberCtx].width ) && (this.body.bottomLeft >= 0 ) ) {
+    this.moveAuto( )
   }else{
-    speed-- ;
-    element.style.left = `${speed}vw`;
-  }
-  return speed;
-}
-
-// map constructor .
-
-var mapsConstructor = function( element ){
-  this.element = element ;
-  this.width = null ;
-  this.height = null ;
-  this.child = [] ;
-  this.childElement = element ;
-}
-
-mapsConstructor.prototype.Mapping = function(i) {
-  this.mapsNumber = i ;
-  this.width = this.element.clientWidth ;
-  this.height = this.element.clientHeight;
-  if ( i < 7 ) {
-    this.child.push(new enemiesConstructor(this.childElement ));
-    moveEnemies( this.child[0] , i , this.element , 0)
+    this.direction = (( this.direction === "right" ) ? "left" : "right" );
+    this.numberCtx++;
+    maps[this.numberCtx].element.prepend(this.element);
+    this.moveAuto( )
   }
 }
-//  add maps .
 
-var mapsElements = document.querySelectorAll('.ctx');
-var maps = [];
+///--- detect if touche the wall ---///
 
-for (let i = 0; i < mapsElements.length; i++) {
-  maps[i] = new mapsConstructor(mapsElements[i]);
-  maps[i].Mapping(i)
-}
-
-
-
-//_______________________________________________________________________________________________________________________________________
-//_________________________________________________________ shoot__________________________________________________________________________//
-//__________________________________________________________________________________________________________________________________________
-
-///--- shoot object ---///
-var shoots = {
-  number : 0  , // index of shoot give the id of shoot .
-};
-
-///--- action shoot ---//
-document.addEventListener('keypress', function(event){
-  if (event.keyCode === 13 ) {
-    shoots[shoots.number + 1 ] = new shootConstructor();
-    shoots[shoots.number].move(); // add action move for element who is comming creat //
+enemy.prototype.moveAuto = function () {
+  if (this.direction === 'right') {
+    this.speed++;
+    this.element.style.left = `${this.speed}vw`;
+  }else{
+    this.speed-- ;
+    this.element.style.left = `${this.speed}vw`;
   }
-})
-
-var shootConstructor = function () {
-  shoots.number++;
-  this.numberOf = shoots.number ;
-  this.shoot = document.createElement('div') ;
-  this.shoot.className = "shoot" ;
-  this.y = null;
-  this.x = null ;
-  this.owner = player ;
-  this.life = true ;
+  setTimeout( () => {
+    this.getPosition(this.numberCtx);
+  }, 50)
 }
-
-shootConstructor.prototype.move = function (element){
-  // Get position .
   
-  this.y = this.owner.y ;
-  this.x = this.owner.x ;
+  ///---Remove the enemy ---///
   
+  enemy.prototype.removeObjet = function (){
+    this.life = false ;
+    this.remove();
+  }
   
-  // this initial position of shoot .
-  
-  this.shoot.style.left = `${this.owner.center + ( this.owner.element.clientHeight / 2 ) }px` ;
-  maps[9].element.appendChild(this.shoot);
-  shootMove( this.shoot , 0 , shoots[this.numberOf] , 9 , this.owner.center )
+  //_______________________________________________________________________________________________________________________________________
+  //_________________________________________________________ Map __________________________________________________________________________//
+  //________________________________________________________________________________________________________________________________________
   
   
-}
-
-///---shoot move---///
-
-function shootMove(element , y , objet , i , x ) {
-  // position Y of shoot
-  objet.y = y ;
-  if ( maps[i] && ( maps[i].height < y )) {
-    i--;
-    if ( i === -1 ) { 
-      ///---if map is undefined remove---//
-      element.remove()
-      return
+  var mapsConstructor = function( element , i ){
+    this.element = element ;
+    this.width = null ;
+    this.height = null ;
+    this.child = [] ;
+    this.mapsNumber = i;
+    this.Mapping();
+  }
+  
+  mapsConstructor.prototype.Mapping = function(i) {
+    this.width = this.element.clientWidth ;
+    this.height = this.element.clientHeight;
+  }
+  
+  mapsConstructor.prototype.mapenemyCreat = function() {
+    if ( this.mapsNumber < 7 ) {
+      this.child.push(new enemy( this.element , this.mapsNumber ));
     }
-    if (maps[i].child[0]) {
-      if ( x < maps[i].child[0].body.bottomRight && x > maps[i].child[0].body.bottomLeft ) {
-        maps[i].child[0].removeObjet();
-        console.log(element.remove() , maps[i].child[0])
+  }
+  
+  //  add maps .
+  
+  var mapsElements = document.querySelectorAll('.ctx');
+  var maps = [];
+  
+  for (let i = 0; i < mapsElements.length; i++) {
+    maps[i] = new mapsConstructor(mapsElements[i] , i );
+    maps[i].mapenemyCreat();
+  }
+  
+  
+  //_______________________________________________________________________________________________________________________________________
+  //_________________________________________________________ shoot__________________________________________________________________________//
+  //__________________________________________________________________________________________________________________________________________
+  
+  ///--- shoot object ---///
+  var shoots = {
+    number : 0  , // index of shoot give the id of shoot .
+  };
+  
+  ///--- action shoot ---//
+  document.addEventListener('keypress', function(event){
+    if (event.keyCode === 13 ) {
+      shoots[shoots.number + 1 ] = new shootConstructor();
+      shoots[shoots.number].move(); // add action move for element who is comming creat //
+    }
+  })
+  
+  var shootConstructor = function () {
+    shoots.number++;
+    this.numberOf = shoots.number ;
+    this.shoot = document.createElement('div') ;
+    this.shoot.className = "shoot" ;
+    this.y = null;
+    this.x = null ;
+    this.owner = player ;
+    this.life = true ;
+  }
+  
+  shootConstructor.prototype.move = function (element){
+    // Get position .
+    
+    this.y = this.owner.y ;
+    this.x = this.owner.x ;
+    
+    
+    // this initial position of shoot .
+    
+    this.shoot.style.left = `${this.owner.center + ( this.owner.element.clientHeight / 2 ) }px` ;
+    maps[9].element.appendChild(this.shoot);
+    shootMove( this.shoot , 0 , shoots[this.numberOf] , 9 , this.owner.center )
+    
+    
+  }
+  
+  ///---shoot move---///
+  
+  function shootMove(element , y , objet , i , x ) {
+    // position Y of shoot
+    objet.y = y ;
+    if ( maps[i] && ( maps[i].height < y )) {
+      i--;
+      if ( i === -1 ) { 
+        ///---if map is undefined remove---//
+        element.remove()
         return
       }
-    }
-    ///--- move whene the shoot change the map---///
-    maps[i].element.appendChild(element);
-    let speed = y -  maps[i].height ;
-    element.style.bottom = `${speed}px` ;
-    shootMove(element , speed , objet , i , x )
-  }else{
-    setTimeout( ( function(){ 
-      // move Classique
-      let speed = 20 + y ;
+      if (maps[i].child[0]) {
+        if ( x < maps[i].child[0].body.bottomRight && x > maps[i].child[0].body.bottomLeft ) {
+          maps[i].child[0].removeObjet();
+          console.log(element.remove() , maps[i].child[0])
+          return
+        }
+      }
+      ///--- move whene the shoot change the map---///
+      maps[i].element.appendChild(element);
+      let speed = y -  maps[i].height ;
       element.style.bottom = `${speed}px` ;
       shootMove(element , speed , objet , i , x )
-    } ),80)
+    }else{
+      setTimeout( ( function(){ 
+        // move Classique
+        let speed = 20 + y ;
+        element.style.bottom = `${speed}px` ;
+        shootMove(element , speed , objet , i , x )
+      } ),80)
+    }
   }
-}
-
-////---Remove objet---//// 
-
-let check = document.createElement('div');
-
-function destrutor(element) {
-  if (!element) {
-    console.error('----- destrutor ---- add a element your are forget ?')
-    return
+  
+  ////---Remove objet---//// 
+  
+  let check = document.createElement('div');
+  
+  function destrutor(element) {
+    if (!element) {
+      console.error('----- destrutor ---- add a element your are forget ?')
+      return
+    }
+    if ( typeof element === 'object' ) {
+      element.element.remove()
+    }
   }
-  if ( typeof element === 'object' ) {
-    element.element.remove()
-  }
-}
-
-
-
+  
+  
+  
+  

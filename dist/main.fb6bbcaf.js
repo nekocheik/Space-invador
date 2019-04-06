@@ -624,6 +624,7 @@ var _domain = require("domain");
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
+//_________________________________________________________ -fuction get position- __________________________________________________________________________//
 var getPosition = function getPosition(element, position) {
   if (!element) {
     console.error(' ---- getPosition ---- as not a element on the function');
@@ -680,102 +681,101 @@ document.addEventListener('keydown', function () {
     player.element.style.left = "".concat(Move[event.key](player) / 3, "vw");
   }
 }); //_______________________________________________________________________________________________________________________________________
-//_________________________________________________________ enemies __________________________________________________________________________//
+/////_________________________________________________________ enemies __________________________________________________________________________/
 //__________________________________________________________________________________________________________________________________________
-///--- Array where the enemies will go --- -/ Array enemies /- ///
+///--- Array where the enemy will go --- -/ Array enemies /- ///
 
-var enemies = []; ///--- Constructor for enemies ---///
+var enemies = []; ///--- Constructor for enemy ---///
 
-var enemiesConstructor = function enemiesConstructor(ctx) {
+var enemy = function enemy(ctx, numberCtx) {
   var enemy = document.createElement('div');
   enemy.className = 'enemy';
   this.element = enemy;
   this.direction = 'right';
-  this.life = true;
   ctx.appendChild(enemy);
-}; ///--- Get enemies position ---///
+  this.speed = 0; // call the new position for do the move //
+
+  this.getPosition(numberCtx);
+}; ///--- Get enemy position ---///
 
 
-enemiesConstructor.prototype.postion = function (numberCtx) {
-  if (!this.life) {
-    return;
-  }
-
-  this.x = getPosition(this.element, 'x');
-  this.y = getPosition(this.element, 'y');
-  this.center = getPosition(this.element, 'center');
+enemy.prototype.getPosition = function (numberCtx) {
+  this.numberCtx = numberCtx;
+  this.positions = {
+    x: getPosition(this.element, 'x'),
+    y: getPosition(this.element, 'y'),
+    center: getPosition(this.element, 'center')
+  };
   this.hitbox();
 }; ///--- Create hitbox ---///
 
 
-enemiesConstructor.prototype.hitbox = function () {
-  this.topLeft = this.element.offsetLeft;
-  this.topRight = this.element.offsetLeft + this.element.clientWidth;
-  this.bottomLeft = this.element.clientHeight + this.element.offsetLeft;
-  this.bottomRight = this.element.clientHeight + this.element.clientWidth + this.element.offsetLeft;
-}; ///---Remove the enemy ---///
+enemy.prototype.hitbox = function () {
+  this.body = {
+    topLeft: this.element.offsetLeft,
+    topRight: this.element.offsetLeft + this.element.clientWidth,
+    bottomLeft: this.element.clientHeight + this.element.offsetLeft,
+    bottomRight: this.element.clientHeight + this.element.clientWidth + this.element.offsetLeft
+  };
+  this.wall();
+}; ///--- detect if touche the wall ---///
 
 
-enemiesConstructor.prototype.removeObjet = function () {
-  this.life = false;
-  this.remove();
-};
+enemy.prototype.wall = function () {
+  ////////// ----- console.log( this.numberCtx  , this.body.bottomRight , maps[this.numberCtx].width  , this.body.bottomLeft ) ----- ////////// 
+  if (this.numberCtx < 9 && this.body.bottomRight <= maps[this.numberCtx].width && this.body.bottomLeft >= 0) {
+    this.moveAuto();
+  } else {
+    this.direction = this.direction === "right" ? "left" : "right";
+    this.numberCtx++;
+    maps[this.numberCtx].element.prepend(this.element);
+    this.moveAuto();
+  }
+}; ///--- detect if touche the wall ---///
 
-var moveEnemies = function moveEnemies(objetChild, numberCtx, ctx, speed) {
-  numberCtx = objetChild.postion(numberCtx);
 
-  if (!numberCtx && numberCtx !== 0) {
-    return;
+enemy.prototype.moveAuto = function () {
+  var _this = this;
+
+  if (this.direction === 'right') {
+    this.speed++;
+    this.element.style.left = "".concat(this.speed, "vw");
+  } else {
+    this.speed--;
+    this.element.style.left = "".concat(this.speed, "vw");
   }
 
   setTimeout(function () {
-    speed = changeDirection(objetChild.direction, objetChild.element, speed, objetChild);
-    moveEnemies(objetChild, numberCtx, ctx, speed);
-  }, 1000);
-}; // for ennemies to change direction .
-// if (( numberCtx < 9 ) && (this.body.bottomRight >= maps[numberCtx].width ) || (this.body.bottomLeft <= 0 ) ) {
-//   numberCtx++ ;
-//   if (numberCtx === 8) {
-//     this.element.remove()
-//     return
-//   };
-//   maps[numberCtx].element.prepend(this.element);
-//   this.direction = (( this.direction === "right" ) ? "left" : "right" );
-// }
-// return numberCtx
-// setTimeout récursif for créat move enemy .
-// Move and change direction for enemy .
+    _this.getPosition(_this.numberCtx);
+  }, 50);
+}; ///---Remove the enemy ---///
 
 
-function changeDirection(direction, element, speed, objetChild) {
-  if (direction === 'right') {
-    speed++;
-    element.style.left = "".concat(speed, "vw");
-  } else {
-    speed--;
-    element.style.left = "".concat(speed, "vw");
-  }
-
-  return speed;
-} // map constructor .
+enemy.prototype.removeObjet = function () {
+  this.life = false;
+  this.remove();
+}; //_______________________________________________________________________________________________________________________________________
+//_________________________________________________________ Map __________________________________________________________________________//
+//________________________________________________________________________________________________________________________________________
 
 
-var mapsConstructor = function mapsConstructor(element) {
+var mapsConstructor = function mapsConstructor(element, i) {
   this.element = element;
   this.width = null;
   this.height = null;
   this.child = [];
-  this.childElement = element;
+  this.mapsNumber = i;
+  this.Mapping();
 };
 
 mapsConstructor.prototype.Mapping = function (i) {
-  this.mapsNumber = i;
   this.width = this.element.clientWidth;
   this.height = this.element.clientHeight;
+};
 
-  if (i < 7) {
-    this.child.push(new enemiesConstructor(this.childElement));
-    moveEnemies(this.child[0], i, this.element, 0);
+mapsConstructor.prototype.mapenemyCreat = function () {
+  if (this.mapsNumber < 7) {
+    this.child.push(new enemy(this.element, this.mapsNumber));
   }
 }; //  add maps .
 
@@ -784,8 +784,8 @@ var mapsElements = document.querySelectorAll('.ctx');
 var maps = [];
 
 for (var i = 0; i < mapsElements.length; i++) {
-  maps[i] = new mapsConstructor(mapsElements[i]);
-  maps[i].Mapping(i);
+  maps[i] = new mapsConstructor(mapsElements[i], i);
+  maps[i].mapenemyCreat();
 } //_______________________________________________________________________________________________________________________________________
 //_________________________________________________________ shoot__________________________________________________________________________//
 //__________________________________________________________________________________________________________________________________________
