@@ -642,7 +642,21 @@ var getPosition = function getPosition(element, position) {
   } else {
     return center;
   }
-}; //_______________________________________________________________________________________________________________________________________
+}; ////---Remove objet---//// 
+
+
+var check = document.createElement('div');
+
+function destrutor(element) {
+  if (!element) {
+    console.error('----- destrutor ---- add a element your are forget ?');
+    return;
+  }
+
+  if (_typeof(element) === 'object') {
+    element.element.remove();
+  }
+} //_______________________________________________________________________________________________________________________________________
 //_________________________________________________________ Player__________________________________________________________________________//
 //__________________________________________________________________________________________________________________________________________
 
@@ -687,13 +701,13 @@ document.addEventListener('keydown', function () {
 
 var enemies = []; ///--- Constructor for enemy ---///
 
-var enemy = function enemy(ctx, numberCtx) {
+var enemy = function enemy(ctx, numberCtx, left) {
   var enemy = document.createElement('div');
   enemy.className = 'enemy';
   this.element = enemy;
   this.direction = 'right';
   ctx.appendChild(enemy);
-  this.speed = 0; // call the new position for do the move //
+  this.speed = left; // call the new position for do the move //
 
   this.getPosition(numberCtx);
 }; ///--- Get enemy position ---///
@@ -722,7 +736,6 @@ enemy.prototype.hitbox = function () {
 
 
 enemy.prototype.wall = function () {
-  ////////// ----- console.log( this.numberCtx  , this.body.bottomRight , maps[this.numberCtx].width  , this.body.bottomLeft ) ----- ////////// 
   if (this.numberCtx < 9 && this.body.bottomRight <= maps[this.numberCtx].width && this.body.bottomLeft >= 0) {
     this.moveAuto();
   } else {
@@ -747,12 +760,13 @@ enemy.prototype.moveAuto = function () {
 
   setTimeout(function () {
     _this.getPosition(_this.numberCtx);
-  }, 50);
+  }, 500);
 }; ///---Remove the enemy ---///
 
 
 enemy.prototype.removeObjet = function () {
   this.life = false;
+  destrutor(this);
   this.remove();
 }; //_______________________________________________________________________________________________________________________________________
 //_________________________________________________________ Map __________________________________________________________________________//
@@ -775,7 +789,10 @@ mapsConstructor.prototype.Mapping = function (i) {
 
 mapsConstructor.prototype.mapenemyCreat = function () {
   if (this.mapsNumber < 7) {
-    this.child.push(new enemy(this.element, this.mapsNumber));
+    for (var i = 0; i < 6; i++) {
+      var left = 10 * i;
+      this.child.push(new enemy(this.element, this.mapsNumber, left));
+    }
   }
 }; //  add maps .
 
@@ -787,7 +804,7 @@ for (var i = 0; i < mapsElements.length; i++) {
   maps[i] = new mapsConstructor(mapsElements[i], i);
   maps[i].mapenemyCreat();
 } //_______________________________________________________________________________________________________________________________________
-//_________________________________________________________ shoot__________________________________________________________________________//
+////_________________________________________________________ shoot__________________________________________________________________________//
 //__________________________________________________________________________________________________________________________________________
 ///--- shoot object ---///
 
@@ -798,83 +815,77 @@ var shoots = {
 }; ///--- action shoot ---//
 
 document.addEventListener('keypress', function (event) {
-  if (event.keyCode === 13) {
-    shoots[shoots.number + 1] = new shootConstructor();
-    shoots[shoots.number].move(); // add action move for element who is comming creat //
+  if (event.keyCode === 32) {
+    shoots[shoots.number + 1] = new shoot();
   }
 });
 
-var shootConstructor = function shootConstructor() {
+var shoot = function shoot() {
   shoots.number++;
   this.numberOf = shoots.number;
   this.shoot = document.createElement('div');
-  this.shoot.className = "shoot";
-  this.y = null;
-  this.x = null;
+  this.shoot.className = "shoot"; ///
+
   this.owner = player;
   this.life = true;
-};
+  this.speed = 0;
+  this.ctxNumber = 9;
+  this.initialisation();
+}; ///--- appendChild the element ---///
 
-shootConstructor.prototype.move = function (element) {
-  // Get position .
-  this.y = this.owner.y;
-  this.x = this.owner.x; // this initial position of shoot .
 
+shoot.prototype.initialisation = function () {
   this.shoot.style.left = "".concat(this.owner.center + this.owner.element.clientHeight / 2, "px");
   maps[9].element.appendChild(this.shoot);
-  shootMove(this.shoot, 0, shoots[this.numberOf], 9, this.owner.center);
+  this.position();
+}; ///--- this is initial position of shoot ---///
+
+
+shoot.prototype.position = function (element) {
+  // Get position .
+  this.y = this.owner.y;
+  this.x = this.owner.x;
+  this.shootMove();
+}; //   shootMove( this.shoot , 0 , shoots[this.numberOf] , 9 , this.owner.center )
+
+
+shoot.prototype.mapping = function () {
+  //-- move whene the shoot change the map --//
+  if (maps[this.ctxNumber].height <= this.speed) {
+    this.ctxNumber--;
+
+    if (this.ctxNumber === -1) {
+      return this.shoot.remove();
+    }
+
+    this.speed = 0;
+    maps[this.ctxNumber].element.appendChild(this.shoot);
+    if (maps[this.ctxNumber].child[0]) console.log(maps[this.ctxNumber].child[0].body.topLeft, this.shoot.offsetLeft, maps[this.ctxNumber].child[0].body.topRight);
+
+    for (var _i = 0; _i < maps[this.ctxNumber].child.length; _i++) {
+      if (maps[this.ctxNumber].child[_i] && this.shoot.offsetLeft < maps[this.ctxNumber].child[_i].body.topRight && this.shoot.offsetLeft > maps[this.ctxNumber].child[_i].body.topLeft) {
+        maps[this.ctxNumber].child[_i].element.remove();
+
+        maps[this.ctxNumber].child[_i] = null;
+        this.shoot.remove();
+        return;
+      }
+    }
+  }
+
+  this.shootMove();
 }; ///---shoot move---///
 
 
-function shootMove(element, y, objet, i, x) {
-  // position Y of shoot
-  objet.y = y;
+shoot.prototype.shootMove = function () {
+  var _this2 = this;
 
-  if (maps[i] && maps[i].height < y) {
-    i--;
-
-    if (i === -1) {
-      ///---if map is undefined remove---//
-      element.remove();
-      return;
-    }
-
-    if (maps[i].child[0]) {
-      if (x < maps[i].child[0].body.bottomRight && x > maps[i].child[0].body.bottomLeft) {
-        maps[i].child[0].removeObjet();
-        console.log(element.remove(), maps[i].child[0]);
-        return;
-      }
-    } ///--- move whene the shoot change the map---///
-
-
-    maps[i].element.appendChild(element);
-    var speed = y - maps[i].height;
-    element.style.bottom = "".concat(speed, "px");
-    shootMove(element, speed, objet, i, x);
-  } else {
-    setTimeout(function () {
-      // move Classique
-      var speed = 20 + y;
-      element.style.bottom = "".concat(speed, "px");
-      shootMove(element, speed, objet, i, x);
-    }, 80);
-  }
-} ////---Remove objet---//// 
-
-
-var check = document.createElement('div');
-
-function destrutor(element) {
-  if (!element) {
-    console.error('----- destrutor ---- add a element your are forget ?');
-    return;
-  }
-
-  if (_typeof(element) === 'object') {
-    element.element.remove();
-  }
-}
+  this.speed = this.speed + 10;
+  this.shoot.style.bottom = "".concat(this.speed, "px");
+  setTimeout(function () {
+    _this2.mapping();
+  }, 10);
+};
 },{"events":"../node_modules/events/events.js","domain":"../node_modules/domain-browser/source/index.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -903,7 +914,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49808" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "62109" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
