@@ -1,7 +1,7 @@
 .ctx{
-  width: 1000px;
+  width: 200px;
   height: 60px;
-  //border: solid black 1px;
+  border: solid black 1px;
   position: relative;
   background-color: white;
   display: block;
@@ -14,12 +14,11 @@
     border: solid black 1px;
   }
   div.enemy{
-    width: 4vh;
-    height: 4vh;
-    border: solid black 1px;
+    width: 40px;
+    height: 40px;
     position: absolute;
-    display: inline-block;
-    //transition: left 500ms;
+    display: block;
+    background-color: black;
   }
 }
 body{

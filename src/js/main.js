@@ -20,7 +20,6 @@ var getPosition = function (element , position ){
   }
 }
 
-
 ////---Remove objet---//// 
 
 let check = document.createElement('div');
@@ -57,7 +56,7 @@ var player = new creatPlayer() ;
 
 setInterval( function(){
   player.position()
-} , 50 )
+} , 20 )
 player.position()
 
 ////---- player move  ----////
@@ -80,6 +79,7 @@ document.addEventListener('keydown', () => {
     player.element.style.left = `${Move[event.key](player) / 3 }vw` ;
   }
 });
+
 //_______________________________________________________________________________________________________________________________________
 /////_________________________________________________________ enemies __________________________________________________________________________/
 //__________________________________________________________________________________________________________________________________________
@@ -97,7 +97,7 @@ var enemy = function (ctx , numberCtx , left ) {
   this.speed = left ;
   
   // call the new position for do the move //
-  this.getPosition(numberCtx);
+  this.moveAuto() 
 }
 
 ///--- Get enemy position ---///
@@ -117,37 +117,41 @@ enemy.prototype.hitbox = function () {
   this.body = {
     topLeft : this.element.offsetLeft ,
     topRight : this.element.offsetLeft + this.element.clientWidth ,
-    bottomLeft : this.element.clientHeight + this.element.offsetLeft ,
-    bottomRight : this.element.clientHeight + this.element.clientWidth + this.element.offsetLeft ,
-  }
+    bottomLeft : this.element.offsetLeft ,
+    bottomRight : this.element.clientWidth + this.element.offsetLeft ,
+  };
   this.wall();
 }
 
 
-///--- detect if touche the wall ---///
+///--- detect if touch the wall ---///
 enemy.prototype.wall = function(){
+  console.log( maps[this.numberCtx].width )
   if (( this.numberCtx< 9 ) && ( this.body.bottomRight <= maps[this.numberCtx].width ) && (this.body.bottomLeft >= 0 ) ) {
-    this.moveAuto()
+    this.moveAuto();
   }else{
-    this.direction = (( this.direction === "right" ) ? "left" : "right" );
-    this.numberCtx++;
-      maps[this.numberCtx].element.prepend(this.element);
-    this.moveAuto()
+    this.changeDirection();
+    this.moveAuto();
   }
 }
 
-///--- detect if touche the wall ---///
+
+enemy.prototype.changeDirection = function () {
+  this.direction = (( this.direction === "right" ) ? "left" : "right" );
+}
+
+///--- detect if touch the wall ---///
 enemy.prototype.moveAuto = function () {
   if (this.direction === 'right') {
-    this.speed++;
-    this.element.style.left = `${this.speed}vw`;
+    this.speed += 10 ;
+    this.element.style.left = `${this.speed}px`;
   }else{
-    this.speed-- ;
-    this.element.style.left = `${this.speed}vw`;
+    this.speed -= 10 ;
+    this.element.style.left = `${this.speed}px`;
   }
   setTimeout( () => {
     this.getPosition(this.numberCtx)
-  }, 500)
+  }, 100)
 }
 
 ///---Remove the enemy ---///
@@ -177,13 +181,14 @@ mapsConstructor.prototype.Mapping = function(i) {
 }
 
 mapsConstructor.prototype.mapenemyCreat = function() {
-  if ( this.mapsNumber < 7 ) {
-    for (let i = 0; i < 6 ; i++) {
-      let left = 10 * i ;
+  if ( this.mapsNumber < 1 ) {
+    for (let i = 0; i < 1 ; i++) {
+      let left =  5 * i ;
       this.child.push(new enemy( this.element , this.mapsNumber , left ));  
     }
   }
 }
+
 
 //  add maps .
 
@@ -195,6 +200,7 @@ for (let i = 0; i < mapsElements.length; i++) {
   maps[i].mapenemyCreat();
 }
 
+console.log(maps[1]);
 
 //_______________________________________________________________________________________________________________________________________
 ////_________________________________________________________ shoot__________________________________________________________________________//
@@ -273,7 +279,3 @@ shoot.prototype.shootMove =  function () {
     this.mapping();
   } ,10)
 }
-
-
-
-

@@ -47,8 +47,9 @@ table {
 	border-spacing: 0;
 }
 .ctx {
-  width: 1000px;
+  width: 200px;
   height: 60px;
+  border: solid black 1px;
   position: relative;
   background-color: white;
   display: block;
@@ -62,11 +63,11 @@ table {
   border: solid black 1px;
 }
 .ctx div.enemy {
-  width: 4vh;
-  height: 4vh;
-  border: solid black 1px;
+  width: 40px;
+  height: 40px;
   position: absolute;
-  display: inline-block;
+  display: block;
+  background-color: black;
 }
 
 body {

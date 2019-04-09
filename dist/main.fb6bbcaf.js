@@ -676,7 +676,7 @@ var player = new creatPlayer(); ///--- interval for get the position of the play
 
 setInterval(function () {
   player.position();
-}, 50);
+}, 20);
 player.position(); ////---- player move  ----////
 
 var Move = {
@@ -709,7 +709,7 @@ var enemy = function enemy(ctx, numberCtx, left) {
   ctx.appendChild(enemy);
   this.speed = left; // call the new position for do the move //
 
-  this.getPosition(numberCtx);
+  this.moveAuto();
 }; ///--- Get enemy position ---///
 
 
@@ -728,39 +728,43 @@ enemy.prototype.hitbox = function () {
   this.body = {
     topLeft: this.element.offsetLeft,
     topRight: this.element.offsetLeft + this.element.clientWidth,
-    bottomLeft: this.element.clientHeight + this.element.offsetLeft,
-    bottomRight: this.element.clientHeight + this.element.clientWidth + this.element.offsetLeft
+    bottomLeft: this.element.offsetLeft,
+    bottomRight: this.element.clientWidth + this.element.offsetLeft
   };
   this.wall();
-}; ///--- detect if touche the wall ---///
+}; ///--- detect if touch the wall ---///
 
 
 enemy.prototype.wall = function () {
+  console.log(maps[this.numberCtx].width);
+
   if (this.numberCtx < 9 && this.body.bottomRight <= maps[this.numberCtx].width && this.body.bottomLeft >= 0) {
     this.moveAuto();
   } else {
-    this.direction = this.direction === "right" ? "left" : "right";
-    this.numberCtx++;
-    maps[this.numberCtx].element.prepend(this.element);
+    this.changeDirection();
     this.moveAuto();
   }
-}; ///--- detect if touche the wall ---///
+};
+
+enemy.prototype.changeDirection = function () {
+  this.direction = this.direction === "right" ? "left" : "right";
+}; ///--- detect if touch the wall ---///
 
 
 enemy.prototype.moveAuto = function () {
   var _this = this;
 
   if (this.direction === 'right') {
-    this.speed++;
-    this.element.style.left = "".concat(this.speed, "vw");
+    this.speed += 10;
+    this.element.style.left = "".concat(this.speed, "px");
   } else {
-    this.speed--;
-    this.element.style.left = "".concat(this.speed, "vw");
+    this.speed -= 10;
+    this.element.style.left = "".concat(this.speed, "px");
   }
 
   setTimeout(function () {
     _this.getPosition(_this.numberCtx);
-  }, 500);
+  }, 100);
 }; ///---Remove the enemy ---///
 
 
@@ -788,9 +792,9 @@ mapsConstructor.prototype.Mapping = function (i) {
 };
 
 mapsConstructor.prototype.mapenemyCreat = function () {
-  if (this.mapsNumber < 7) {
-    for (var i = 0; i < 6; i++) {
-      var left = 10 * i;
+  if (this.mapsNumber < 1) {
+    for (var i = 0; i < 1; i++) {
+      var left = 5 * i;
       this.child.push(new enemy(this.element, this.mapsNumber, left));
     }
   }
@@ -803,11 +807,12 @@ var maps = [];
 for (var i = 0; i < mapsElements.length; i++) {
   maps[i] = new mapsConstructor(mapsElements[i], i);
   maps[i].mapenemyCreat();
-} //_______________________________________________________________________________________________________________________________________
+}
+
+console.log(maps[1]); //_______________________________________________________________________________________________________________________________________
 ////_________________________________________________________ shoot__________________________________________________________________________//
 //__________________________________________________________________________________________________________________________________________
 ///--- shoot object ---///
-
 
 var shoots = {
   number: 0 // index of shoot give the id of shoot .
@@ -914,7 +919,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "62109" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50453" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

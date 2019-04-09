@@ -70,6 +70,8 @@ enemiesConstructor.prototype.postion = function ( numberCtx ) {
   return numberCtx
 }
 
+
+
 enemiesConstructor.prototype.removeObjet = function (){
   this.life = false ;
   this.element.remove();
