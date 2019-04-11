@@ -624,7 +624,7 @@ var _domain = require("domain");
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
-//_________________________________________________________ -fuction get position- __________________________________________________________________________//
+//_________________________________________________________ -fuction get position- ________________________________________________________//
 var getPosition = function getPosition(element, position) {
   if (!element) {
     console.error(' ---- getPosition ---- as not a element on the function');
@@ -707,14 +707,14 @@ var enemy = function enemy(ctx, numberCtx, left) {
   this.element = enemy;
   this.direction = 'right';
   ctx.appendChild(enemy);
-  this.speed = left; // call the new position for do the move //
+  this.speed = left;
+  this.numberCtx = numberCtx; // call the new position for do the move //
 
   this.moveAuto();
 }; ///--- Get enemy position ---///
 
 
-enemy.prototype.getPosition = function (numberCtx) {
-  this.numberCtx = numberCtx;
+enemy.prototype.getPosition = function () {
   this.positions = {
     x: getPosition(this.element, 'x'),
     y: getPosition(this.element, 'y'),
@@ -736,18 +736,16 @@ enemy.prototype.hitbox = function () {
 
 
 enemy.prototype.wall = function () {
-  console.log(maps[this.numberCtx].width);
-
-  if (this.numberCtx < 9 && this.body.bottomRight <= maps[this.numberCtx].width && this.body.bottomLeft >= 0) {
+  if (this.numberCtx < 9 && this.body.bottomRight < maps[this.numberCtx].width && this.body.bottomLeft >= 10) {
     this.moveAuto();
   } else {
     this.changeDirection();
-    this.moveAuto();
   }
 };
 
 enemy.prototype.changeDirection = function () {
   this.direction = this.direction === "right" ? "left" : "right";
+  this.moveAuto();
 }; ///--- detect if touch the wall ---///
 
 
@@ -763,7 +761,7 @@ enemy.prototype.moveAuto = function () {
   }
 
   setTimeout(function () {
-    _this.getPosition(_this.numberCtx);
+    _this.getPosition();
   }, 100);
 }; ///---Remove the enemy ---///
 
@@ -919,7 +917,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50453" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61541" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

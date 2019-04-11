@@ -1,7 +1,7 @@
 import { prototype } from "events";
 import { create } from "domain";
 
-//_________________________________________________________ -fuction get position- __________________________________________________________________________//
+//_________________________________________________________ -fuction get position- ________________________________________________________//
 
 var getPosition = function (element , position ){
   if (!element) {
@@ -88,21 +88,20 @@ document.addEventListener('keydown', () => {
 var enemies = [] ;
 
 ///--- Constructor for enemy ---///
-var enemy = function (ctx , numberCtx , left ) {
+var enemy = function ( ctx , numberCtx , left ) {
   var enemy = document.createElement('div');
   enemy.className = 'enemy';
   this.element = enemy ;
   this.direction = 'right';
   ctx.appendChild(enemy);
   this.speed = left ;
-  
+  this.numberCtx = numberCtx;
   // call the new position for do the move //
   this.moveAuto() 
 }
 
 ///--- Get enemy position ---///
-enemy.prototype.getPosition = function ( numberCtx ) {
-  this.numberCtx = numberCtx;
+enemy.prototype.getPosition = function () {
   this.positions = {
     x :  getPosition(this.element , 'x'),
     y : getPosition(this.element , 'y'),
@@ -126,18 +125,17 @@ enemy.prototype.hitbox = function () {
 
 ///--- detect if touch the wall ---///
 enemy.prototype.wall = function(){
-  console.log( maps[this.numberCtx].width )
-  if (( this.numberCtx< 9 ) && ( this.body.bottomRight <= maps[this.numberCtx].width ) && (this.body.bottomLeft >= 0 ) ) {
+  if (( this.numberCtx < 9 ) && ( this.body.bottomRight < ( maps[this.numberCtx].width ) ) && (this.body.bottomLeft >= 10 ) ) {
     this.moveAuto();
   }else{
     this.changeDirection();
-    this.moveAuto();
   }
 }
 
 
 enemy.prototype.changeDirection = function () {
   this.direction = (( this.direction === "right" ) ? "left" : "right" );
+  this.moveAuto();
 }
 
 ///--- detect if touch the wall ---///
@@ -150,7 +148,7 @@ enemy.prototype.moveAuto = function () {
     this.element.style.left = `${this.speed}px`;
   }
   setTimeout( () => {
-    this.getPosition(this.numberCtx)
+    this.getPosition()
   }, 100)
 }
 
