@@ -139,7 +139,7 @@ function createHitbox(element) {
 }
 
 function colision(elementOne, elementTwo) {
-  if (elementOne.x < elementTwo.x + elementTwo.width && elementOne.x + elementOne.width > elementTwo.x && elementOne.y < elementTwo.y + elementTwo.height && elementOne.height + elementOne.y > elementTwo.y) {
+  if (elementOne.positonX < elementTwo.positonX + elementTwo.width && elementOne.positonX + elementOne.width > elementTwo.positonX && elementOne.positonY < elementTwo.positonY + elementTwo.height && elementOne.height + elementOne.positonY > elementTwo.positonY) {
     return true;
   }
 }
@@ -163,14 +163,14 @@ var ballShoot = function ballShoot(element, direction, ctx) {
   this.positonY = element.positonY;
   this.width = 5;
   this.height = 5;
-  this.speed = 50;
+  this.speed = 5;
   this.direction = direction;
 };
 
 exports.ballShoot = ballShoot;
 
 ballShoot.prototype.move = function () {
-  this.positonY--;
+  this.positonY = this.positonY - this.speed;
   this.ctx.beginPath();
   this.ctx.rect(this.positonX, this.positonY, this.width, this.height);
   this.ctx.fillStyle = "red";
@@ -190,7 +190,7 @@ var player = {
   positonY: 550,
   width: 50,
   height: 20,
-  speed: 15,
+  speed: 30,
   draw: function draw() {
     ctx.beginPath();
     ctx.rect(this.positonX, this.positonY, this.width, this.height);
@@ -203,13 +203,29 @@ var player = {
 var enemies = {
   positonX: 118,
   positonY: 80,
-  speed: 50
+  speed: 0.4,
+  width: null,
+  direction: 'left',
+  changeDirection: false,
+  move: function move() {
+    if (this.direction === 'left') {
+      this.positonX = this.positonX + this.speed;
+    } else {
+      this.positonX = this.positonX - this.speed;
+    }
+
+    ;
+  }
 },
-    createEnemie = function createEnemie(x, y) {
+    createEnemie = function createEnemie(x, y, j, i) {
   this.positonX = x;
   this.positonY = y;
   this.width = 32;
   this.height = 32;
+  this.positonTab = {
+    row: j,
+    column: i
+  };
 };
 
 createEnemie.prototype.move = function () {
@@ -234,23 +250,56 @@ document.addEventListener('keydown', function () {
 });
 setInterval(function () {
   (0, _ckc.mapHitbox)(player, canvas);
+
+  if ((0, _ckc.mapHitbox)(enemies, canvas)) {
+    enemies.direction = enemies.direction === 'left' ? 'right' : 'left';
+
+    if (enemies.changeDirection === true) {
+      enemies.positonY = enemies.positonY + 20;
+    }
+
+    enemies.changeDirection = true;
+  }
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  constructorEnemie();
   player.draw();
+  enemies.move();
 
   for (var i = 0; i < shoots.length; i++) {
     shoots[i].move();
   }
 
+  ok.forEach(function (element) {
+    shoots.forEach(function (shoot) {
+      if ((0, _ckc.colision)(shoot, element)) {
+        level[element.positonTab.row][element.positonTab.column] = null;
+      }
+    });
+  });
+}, 10);
+var ok = [];
+
+var constructorEnemie = function constructorEnemie() {
+  ok = [];
+
   for (var j = 0; j < level.length; j++) {
     var y = enemies.positonY + 50 * j;
 
-    for (var _i = 0; _i < level[j].length; _i++) {
-      var x = enemies.positonX + 50 * _i;
-      var enemy = new createEnemie(x, y);
-      enemy.move();
+    for (var i = 0; i < level[j].length; i++) {
+      var x = enemies.positonX + 50 * i;
+
+      if (level[j][i] === '0') {
+        var enemy = new createEnemie(x, y, j, i);
+        ok.push(enemy);
+        enemy.move();
+        var enemiesWidth = i * 50 + enemy.width;
+      }
     }
   }
-}, 10);
+
+  enemies.width = enemiesWidth;
+};
 },{"../js/ckc":"js/ckc.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -279,7 +328,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54882" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58579" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

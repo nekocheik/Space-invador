@@ -19,7 +19,7 @@ var player = {
   positonY : 550,
   width : 50,
   height: 20,
-  speed: 15,
+  speed: 30,
   
   draw : function ()  {
     ctx.beginPath();
@@ -36,15 +36,29 @@ var player = {
 var enemies = {
   positonX : 118,
   positonY : 80,
-  speed : 50, 
+  speed : 0.4,
+  width: null ,
+  direction : 'left',
+  changeDirection : false ,
+  move : function () {
+    if (this.direction === 'left') {
+      this.positonX = this.positonX + this.speed ;
+    }else{
+      this.positonX = this.positonX - this.speed ;
+    };
+  } 
 },
 
 
-createEnemie = function ( x , y ){
+createEnemie = function ( x , y , j , i ){
   this.positonX = x;
   this.positonY = y;
   this.width = 32;
   this.height = 32;
+  this.positonTab = {
+    row : j ,
+    column : i ,
+  }
 }
 
 createEnemie.prototype.move = function () {
@@ -72,27 +86,52 @@ document.addEventListener('keydown', () => {
 
 
 setInterval( ()=>{ 
-  mapHitbox( player , canvas )
   
+  mapHitbox( player , canvas )
+  if ( mapHitbox( enemies , canvas ) ) {
+    enemies.direction = ( enemies.direction === 'left' ? 'right' : 'left');
+    if ( enemies.changeDirection === true ) {
+      enemies.positonY = enemies.positonY + 20 ;
+    }
+    enemies.changeDirection = true ;
+  }
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   
-  player.draw()
+  constructorEnemie();
+  player.draw();
+  enemies.move();
+  
   for (let i = 0; i < shoots.length; i++) {
     shoots[i].move()
   }
+  ok.forEach(element => {
+    shoots.forEach( shoot => {
+      if (colision ( shoot , element )) {
+        level[element.positonTab.row][element.positonTab.column] = null;
+      }
+    })
+  });
+}, 10);
 
+
+
+var ok = [];
+
+var constructorEnemie = function () {
+  ok = [] ;
   for (let j = 0; j < level.length; j++) {
     let y = enemies.positonY + ( 50 * j ) ;
     for (let i = 0; i < level[j].length; i++) {
       let x = enemies.positonX + ( 50 * i ) ;
-      let enemy = new createEnemie( x , y )
-      enemy.move()
+      if ( level[j][i] === '0' ) {
+        let enemy = new createEnemie( x , y , j , i)
+        ok.push(enemy);
+        enemy.move();
+        var enemiesWidth = i * 50 + enemy.width ;
+      }
     } 
-  }   
+  }
+  enemies.width = enemiesWidth ;
+}
 
-
-},10);
-
-
-  
 

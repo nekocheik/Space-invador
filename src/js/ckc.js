@@ -9,10 +9,10 @@ function createHitbox ( element ) {
 }
 
 function colision ( elementOne , elementTwo ){
-  if(elementOne.x < elementTwo.x + elementTwo.width &&
-    elementOne.x + elementOne.width > elementTwo.x &&
-    elementOne.y < elementTwo.y + elementTwo.height &&
-    elementOne.height + elementOne.y > elementTwo.y ){
+  if(elementOne.positonX < elementTwo.positonX + elementTwo.width &&
+    elementOne.positonX + elementOne.width > elementTwo.positonX &&
+    elementOne.positonY < elementTwo.positonY + elementTwo.height &&
+    elementOne.height + elementOne.positonY > elementTwo.positonY ){
       return true
     }  
   }
@@ -35,13 +35,13 @@ function colision ( elementOne , elementTwo ){
     this.positonY = element.positonY; 
     this.width = 5;
     this.height = 5;
-    this.speed = 50;
+    this.speed = 5;
     this.direction = direction ;
   } 
 
   ballShoot.prototype.move = function () {
 
-    this.positonY-- ;
+    this.positonY = this.positonY - this.speed ;
     this.ctx.beginPath();
     this.ctx.rect( this.positonX , this.positonY, this.width , this.height);
     this.ctx.fillStyle = "red";
