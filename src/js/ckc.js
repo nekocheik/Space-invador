@@ -27,22 +27,27 @@ function colision ( elementOne , elementTwo ){
       return true
     }  
   }
-  var ballShoot = {
-    positonX : 100,
-    positonY : 550,
-    width : 50,
-    height: 50,
-    speed: 50,
-
+  
+  var ballShoot = function ( element , direction , ctx ) {
+    this.ctx = ctx ;
+    this.shooter = element ;
+    this.positonX  = element.positonX + ( element.width / 2 ) ;
+    this.positonY = element.positonY; 
+    this.width = 5;
+    this.height = 5;
+    this.speed = 50;
+    this.direction = direction ;
   } 
 
-  function shoot( element , direction ) {
-      ctx.beginPath();
-      ctx.rect( this.positonX , this.positonY, this.width , this.height);
-      ctx.fillStyle = "#0095DD";
-      ctx.fill();
-      ctx.closePath();
-    }
-    
-    
-    export { createHitbox , colision , mapHitbox };
+  ballShoot.prototype.move = function () {
+
+    this.positonY-- ;
+    this.ctx.beginPath();
+    this.ctx.rect( this.positonX , this.positonY, this.width , this.height);
+    this.ctx.fillStyle = "red";
+    this.ctx.fill();
+    this.ctx.closePath();
+  }
+  
+  
+  export { createHitbox , colision , mapHitbox , ballShoot };

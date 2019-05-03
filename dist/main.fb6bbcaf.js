@@ -126,6 +126,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.createHitbox = createHitbox;
 exports.colision = colision;
 exports.mapHitbox = mapHitbox;
+exports.ballShoot = void 0;
 
 function createHitbox(element) {
   var hitbox = {
@@ -155,21 +156,27 @@ function mapHitbox(element, map) {
   }
 }
 
-var ballShoot = {
-  positonX: 100,
-  positonY: 550,
-  width: 50,
-  height: 50,
-  speed: 50
+var ballShoot = function ballShoot(element, direction, ctx) {
+  this.ctx = ctx;
+  this.shooter = element;
+  this.positonX = element.positonX + element.width / 2;
+  this.positonY = element.positonY;
+  this.width = 5;
+  this.height = 5;
+  this.speed = 50;
+  this.direction = direction;
 };
 
-function shoot(element, direction) {
-  ctx.beginPath();
-  ctx.rect(this.positonX, this.positonY, this.width, this.height);
-  ctx.fillStyle = "#0095DD";
-  ctx.fill();
-  ctx.closePath();
-}
+exports.ballShoot = ballShoot;
+
+ballShoot.prototype.move = function () {
+  this.positonY--;
+  this.ctx.beginPath();
+  this.ctx.rect(this.positonX, this.positonY, this.width, this.height);
+  this.ctx.fillStyle = "red";
+  this.ctx.fill();
+  this.ctx.closePath();
+};
 },{}],"js/main.js":[function(require,module,exports) {
 "use strict";
 
@@ -177,12 +184,13 @@ var _ckc = require("../js/ckc");
 
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
+var level = [['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'], ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'], ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'], ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'], ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0']];
 var player = {
   positonX: 100,
   positonY: 550,
   width: 50,
-  height: 50,
-  speed: 50,
+  height: 20,
+  speed: 15,
   draw: function draw() {
     ctx.beginPath();
     ctx.rect(this.positonX, this.positonY, this.width, this.height);
@@ -191,20 +199,58 @@ var player = {
     ctx.closePath();
   }
 };
+
+var enemies = {
+  positonX: 118,
+  positonY: 80,
+  speed: 50
+},
+    createEnemie = function createEnemie(x, y) {
+  this.positonX = x;
+  this.positonY = y;
+  this.width = 32;
+  this.height = 32;
+};
+
+createEnemie.prototype.move = function () {
+  ctx.beginPath();
+  ctx.rect(this.positonX, this.positonY, this.width, this.height);
+  ctx.fillStyle = "black";
+  ctx.fill();
+  ctx.closePath();
+};
+
+var shoots = [];
 document.addEventListener('keydown', function () {
   if (event.key === "ArrowRight") {
     player.positonX = player.positonX + player.speed;
   } else if (event.key === "ArrowLeft") {
     player.positonX = player.positonX - player.speed;
   }
+
+  if (event.key === "a") {
+    shoots.push(new _ckc.ballShoot(player, '      ', ctx));
+  }
 });
 setInterval(function () {
-  if ((0, _ckc.mapHitbox)(player, canvas)) {}
-
+  (0, _ckc.mapHitbox)(player, canvas);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   player.draw();
+
+  for (var i = 0; i < shoots.length; i++) {
+    shoots[i].move();
+  }
+
+  for (var j = 0; j < level.length; j++) {
+    var y = enemies.positonY + 50 * j;
+
+    for (var _i = 0; _i < level[j].length; _i++) {
+      var x = enemies.positonX + 50 * _i;
+      var enemy = new createEnemie(x, y);
+      enemy.move();
+    }
+  }
 }, 10);
-var level = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
 },{"../js/ckc":"js/ckc.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -233,7 +279,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60239" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54882" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
