@@ -47,11 +47,13 @@ function defenseBlock  ( x , y ) {
   this.positonY = y;
   this.width = 80;
   this.height = 50; 
-  this.life = 5 ;
+  this.life = 7 ;
   this.draw();
 }
 defenseBlock.prototype.draw = function () {
   if (this.life < 0) {
+    this.width = 0 ;
+    this.height = 0 ;
     return;
   }
   ctx.beginPath();
@@ -69,7 +71,6 @@ var constructorDefenseBlock = function () {
       let x = ( defenseBlocks.positonX + ( 150 * i )) ;
       blocks[i] = new defenseBlock( x , defenseBlocks.positonY )
     }else{
-      
       blocks[i].draw()
     }
   }
@@ -99,6 +100,7 @@ var groupEnemies = {
     if ( this.changeDirection !== 0 ) {
       this.positonY = this.positonY + this.jump ;
     }
+    this.speed = ( this.speed * 1.2 )
     this.numberTouchWall++ ;
   }
 },
@@ -170,7 +172,7 @@ ballShoot.prototype.move = function () {
 
 ennemy.prototype.shoot = function (){
   if( shootsPerimeter( player , this ) && !this.reloadMunition ) {
-    if ( Math.floor(Math.random() * 10) > 6 ) {
+    if ( Math.floor(Math.random() * 10) > 7 ) {
       enemiesShoots.push(new ballShoot( this , 'bottom' , ctx ))     
     }
     this.reloadMunition = true ;
@@ -189,13 +191,13 @@ document.addEventListener('keydown', () => {
     player.positonX = player.positonX + player.speed ;
   }else if(  event.key === "ArrowLeft" ){
     player.positonX = player.positonX - player.speed ;
-  }if( event.key === "a" ){
+  }if( event.key === "a"  && player.life >= 0 ){
     if( player.reloadMunition ) return ;
     shoots.push( new ballShoot( player , 'top' , ctx ) );
     player.reloadMunition = true ;
     setTimeout( () => {
       player.reloadMunition = false
-    } , 300 )
+    } , 200 )
   }
 });
 
@@ -213,13 +215,14 @@ setInterval( ()=>{
   groupEnemies.move();
   constructorEnemie() ;
   constructorDefenseBlock();
-  //realodEnemies();
   
   for (let i = 0; i < shoots.length; i++) {
     blocks.forEach( block => {
       if ( colision( shoots[i] , block )) {
-        block.life--;
-        shoots[i].life = false;
+        if (shoots[i]) {
+          block.life--;
+          shoots[i].life = false;
+        }
       }
     });
     if ( !shoots[i].life ) {

@@ -202,12 +202,14 @@ function defenseBlock(x, y) {
   this.positonY = y;
   this.width = 80;
   this.height = 50;
-  this.life = 5;
+  this.life = 7;
   this.draw();
 }
 
 defenseBlock.prototype.draw = function () {
   if (this.life < 0) {
+    this.width = 0;
+    this.height = 0;
     return;
   }
 
@@ -256,6 +258,7 @@ var groupEnemies = {
       this.positonY = this.positonY + this.jump;
     }
 
+    this.speed = this.speed * 1.2;
     this.numberTouchWall++;
   }
 },
@@ -329,7 +332,7 @@ ennemy.prototype.shoot = function () {
   var _this = this;
 
   if ((0, _ckc.shootsPerimeter)(player, this) && !this.reloadMunition) {
-    if (Math.floor(Math.random() * 10) > 6) {
+    if (Math.floor(Math.random() * 10) > 7) {
       enemiesShoots.push(new ballShoot(this, 'bottom', ctx));
     }
 
@@ -349,13 +352,13 @@ document.addEventListener('keydown', function () {
     player.positonX = player.positonX - player.speed;
   }
 
-  if (event.key === "a") {
+  if (event.key === "a" && player.life >= 0) {
     if (player.reloadMunition) return;
     shoots.push(new ballShoot(player, 'top', ctx));
     player.reloadMunition = true;
     setTimeout(function () {
       player.reloadMunition = false;
-    }, 300);
+    }, 200);
   }
 });
 setInterval(function () {
@@ -364,13 +367,15 @@ setInterval(function () {
   player.draw();
   groupEnemies.move();
   constructorEnemie();
-  constructorDefenseBlock(); //realodEnemies();
+  constructorDefenseBlock();
 
   var _loop = function _loop(i) {
     blocks.forEach(function (block) {
       if ((0, _ckc.colision)(shoots[i], block)) {
-        block.life--;
-        shoots[i].life = false;
+        if (shoots[i]) {
+          block.life--;
+          shoots[i].life = false;
+        }
       }
     });
 
