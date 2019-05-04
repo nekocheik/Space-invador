@@ -53,7 +53,7 @@ function colision ( elementOne , elementTwo ){
       }
     this.ctx.beginPath();
     this.ctx.rect( this.positonX , this.positonY, this.width , this.height);
-    this.ctx.fillStyle = "red";
+    this.ctx.fillStyle = "white";
     this.ctx.fill();
     this.ctx.closePath();
   }

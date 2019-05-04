@@ -47,9 +47,13 @@ table {
 	border-spacing: 0;
 }
 canvas {
-  background: #eee;
+  background: black;
   display: block;
   margin: auto;
+}
+
+body {
+  background-color: black;
 }
 
 /*# sourceMappingURL=/style.6b54f5b7.css.map */

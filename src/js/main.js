@@ -4,13 +4,17 @@ import { createHitbox , colision , mapHitboxLeftRight , ballShoot , shootsPerime
 
 
 
-var level = [
-  [ 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ],
-  [ 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ],
-  [ 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ],
-  [ 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ],
-  [ 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ],
-]
+var level = {
+  enemies : [ 
+    [ 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ],
+    [ 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ],
+    [ 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ],
+    [ 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ],
+    [ 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ],
+  ],
+  defenseBlock : [ 0 , 0 , 0 , 0 ]
+}
+
 
 
 
@@ -20,14 +24,39 @@ var player = {
   width : 50,
   height: 20,
   speed: 30,
-  
+  reloadMunition : false ,
+  life : 3 ,
   draw : function ()  {
-    ctx.beginPath();
-    ctx.rect( this.positonX , this.positonY, this.width , this.height);
-    ctx.fillStyle = "#0095DD";
-    ctx.fill();
-    ctx.closePath();
+    if( this.life >= 0) {
+      ctx.beginPath();
+      ctx.rect( this.positonX , this.positonY, this.width , this.height);
+      ctx.fillStyle = "white";
+      ctx.fill();
+      ctx.closePath();
+    }
   },
+}
+
+var defenseBlocks = {
+  positonX : 133,
+  positonY : 475,
+}
+
+function defenseBlock  ( x , y ) {
+  positonX = 100;
+  positonY = 550;
+  width = 70;
+  height = 50; 
+  speed = 30; 
+  reloadMunition = false ;
+  life = 5 ;
+}
+
+var blocks = [];
+
+var constructorDefenseBlock = function () {
+  if ( enemies[0] === 'first') {
+  }
 }
 
 
@@ -60,7 +89,7 @@ var groupEnemies = {
 
 
 
-createEnemie = function ( x , y , j , i ){
+ennemy = function ( x , y , j , i ){
   this.positonX = x;
   this.positonY = y;
   this.width = 32;
@@ -73,10 +102,10 @@ createEnemie = function ( x , y , j , i ){
   }
 }
 
-createEnemie.prototype.move = function () {
+ennemy.prototype.move = function () {
   ctx.beginPath();
   ctx.rect( this.positonX , this.positonY, this.width , this.height);
-  ctx.fillStyle = "black";
+  ctx.fillStyle = "white";
   ctx.fill();
   ctx.closePath();
   if (this.commander) {
@@ -86,19 +115,21 @@ createEnemie.prototype.move = function () {
 }
 
 
-createEnemie.prototype.colision = function (){
+ennemy.prototype.colision = function (){
   if ( mapHitboxLeftRight ( this , canvas )) {
     groupEnemies.changeDirection();
   }
 }
 
-createEnemie.prototype.shoot = function (){
+ennemy.prototype.shoot = function (){
   if( shootsPerimeter( player , this ) && !this.reloadMunition ) {
+    if ( Math.floor(Math.random() * 10) > 6 ) {
+      enemiesShoots.push(new ballShoot( this , 'bottom' , ctx ))     
+    }
     this.reloadMunition = true ;
-    enemiesShoots.push(new ballShoot( this , 'bottom' , ctx ))
     setTimeout(  () => {
       this.reloadMunition = false;
-    } , 500)
+    } , 1000)
   }
 }
 
@@ -112,7 +143,12 @@ document.addEventListener('keydown', () => {
   }else if(  event.key === "ArrowLeft" ){
     player.positonX = player.positonX - player.speed ;
   }if( event.key === "a" ){
+    if( player.reloadMunition ) return ;
     shoots.push( new ballShoot( player , 'top' , ctx ) );
+    player.reloadMunition = true ;
+    setTimeout( () => {
+      player.reloadMunition = false
+    } , 300 )
   }
 });
 
@@ -150,7 +186,8 @@ setInterval( ()=>{
   
   enemiesShoots.forEach(element => {
     if ( colision(element , player )) {
-      
+      player.life--;
+      element.life = false;
     }
   });
   
@@ -162,7 +199,7 @@ setInterval( ()=>{
         if ( element ) {
           if ( colision (  element , shoot ) ) {
             shoots.splice( i , 1 ) ;
-            level[element.positonTab.row][element.positonTab.column] = true ;
+            level.enemies[element.positonTab.row][element.positonTab.column] = true ;
           }
         }
       }
@@ -187,13 +224,13 @@ var constructorEnemie = function () {
 }
 
 let tabCommander = []
-for (let j = ( level.length - 1  ) ; j > -1 ; j--) {
+for (let j = ( level.enemies.length - 1  ) ; j > -1 ; j--) {
   let y =  groupEnemies.positonY + ( groupEnemies.space * j ) ;
-  for (let i = ( level[j].length  ) ; i > -1 ; i--) {
+  for (let i = ( level.enemies[j].length  ) ; i > -1 ; i--) {
     let x =  groupEnemies.positonX + (  groupEnemies.space * i ) ;
-    if ( level[j][i] === 0 ) {
+    if ( level.enemies[j][i] === 0 ) {
       if ( !enemies[j][i] ) {
-        let enemy = new createEnemie( x , y , j  , i  );
+        let enemy = new ennemy( x , y , j  , i  );
         enemies[j][i] = enemy ;
       }else{
         enemies[j][i].positonX = x ;
@@ -207,13 +244,12 @@ for (let j = ( level.length - 1  ) ; j > -1 ; j--) {
     }
     else{
       enemies[j][i] =  null ;
-      if ( level[j][i] === true ){
-        level[j][i] = null;
+      if ( level.enemies[j][i] === true ){
+        level.enemies[j][i] = null;
       }
     }
   } 
 }
-console.log(enemies)
 }
 
 

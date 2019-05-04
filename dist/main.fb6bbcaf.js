@@ -188,7 +188,7 @@ ballShoot.prototype.move = function () {
 
   this.ctx.beginPath();
   this.ctx.rect(this.positonX, this.positonY, this.width, this.height);
-  this.ctx.fillStyle = "red";
+  this.ctx.fillStyle = "white";
   this.ctx.fill();
   this.ctx.closePath();
 };
@@ -207,20 +207,47 @@ var _ckc = require("../js/ckc");
 
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
-var level = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
+var level = {
+  enemies: [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]],
+  defenseBlock: [0, 0, 0, 0]
+};
 var player = {
   positonX: 100,
   positonY: 550,
   width: 50,
   height: 20,
   speed: 30,
+  reloadMunition: false,
+  life: 3,
   draw: function draw() {
-    ctx.beginPath();
-    ctx.rect(this.positonX, this.positonY, this.width, this.height);
-    ctx.fillStyle = "#0095DD";
-    ctx.fill();
-    ctx.closePath();
+    if (this.life >= 0) {
+      ctx.beginPath();
+      ctx.rect(this.positonX, this.positonY, this.width, this.height);
+      ctx.fillStyle = "white";
+      ctx.fill();
+      ctx.closePath();
+    }
   }
+};
+var defenseBlocks = {
+  positonX: 133,
+  positonY: 475
+};
+
+function defenseBlock(x, y) {
+  positonX = 100;
+  positonY = 550;
+  width = 70;
+  height = 50;
+  speed = 30;
+  reloadMunition = false;
+  life = 5;
+}
+
+var blocks = [];
+
+var constructorDefenseBlock = function constructorDefenseBlock() {
+  if (enemies[0] === 'first') {}
 };
 
 var groupEnemies = {
@@ -251,7 +278,7 @@ var groupEnemies = {
     this.numberTouchWall++;
   }
 },
-    createEnemie = function createEnemie(x, y, j, i) {
+    ennemy = function ennemy(x, y, j, i) {
   this.positonX = x;
   this.positonY = y;
   this.width = 32;
@@ -264,10 +291,10 @@ var groupEnemies = {
   };
 };
 
-createEnemie.prototype.move = function () {
+ennemy.prototype.move = function () {
   ctx.beginPath();
   ctx.rect(this.positonX, this.positonY, this.width, this.height);
-  ctx.fillStyle = "black";
+  ctx.fillStyle = "white";
   ctx.fill();
   ctx.closePath();
 
@@ -277,21 +304,24 @@ createEnemie.prototype.move = function () {
   }
 };
 
-createEnemie.prototype.colision = function () {
+ennemy.prototype.colision = function () {
   if ((0, _ckc.mapHitboxLeftRight)(this, canvas)) {
     groupEnemies.changeDirection();
   }
 };
 
-createEnemie.prototype.shoot = function () {
+ennemy.prototype.shoot = function () {
   var _this = this;
 
   if ((0, _ckc.shootsPerimeter)(player, this) && !this.reloadMunition) {
+    if (Math.floor(Math.random() * 10) > 6) {
+      enemiesShoots.push(new _ckc.ballShoot(this, 'bottom', ctx));
+    }
+
     this.reloadMunition = true;
-    enemiesShoots.push(new _ckc.ballShoot(this, 'bottom', ctx));
     setTimeout(function () {
       _this.reloadMunition = false;
-    }, 500);
+    }, 1000);
   }
 };
 
@@ -305,7 +335,12 @@ document.addEventListener('keydown', function () {
   }
 
   if (event.key === "a") {
+    if (player.reloadMunition) return;
     shoots.push(new _ckc.ballShoot(player, 'top', ctx));
+    player.reloadMunition = true;
+    setTimeout(function () {
+      player.reloadMunition = false;
+    }, 300);
   }
 });
 setInterval(function () {
@@ -336,7 +371,10 @@ setInterval(function () {
   }
 
   enemiesShoots.forEach(function (element) {
-    if ((0, _ckc.colision)(element, player)) {}
+    if ((0, _ckc.colision)(element, player)) {
+      player.life--;
+      element.life = false;
+    }
   });
   enemies.forEach(function (tab) {
     tab.forEach(function (element) {
@@ -346,7 +384,7 @@ setInterval(function () {
         if (element) {
           if ((0, _ckc.colision)(element, shoot)) {
             shoots.splice(_i2, 1);
-            level[element.positonTab.row][element.positonTab.column] = true;
+            level.enemies[element.positonTab.row][element.positonTab.column] = true;
           }
         }
       }
@@ -362,15 +400,15 @@ var constructorEnemie = function constructorEnemie() {
 
   var tabCommander = [];
 
-  for (var j = level.length - 1; j > -1; j--) {
+  for (var j = level.enemies.length - 1; j > -1; j--) {
     var y = groupEnemies.positonY + groupEnemies.space * j;
 
-    for (var i = level[j].length; i > -1; i--) {
+    for (var i = level.enemies[j].length; i > -1; i--) {
       var x = groupEnemies.positonX + groupEnemies.space * i;
 
-      if (level[j][i] === 0) {
+      if (level.enemies[j][i] === 0) {
         if (!enemies[j][i]) {
-          var enemy = new createEnemie(x, y, j, i);
+          var enemy = new ennemy(x, y, j, i);
           enemies[j][i] = enemy;
         } else {
           enemies[j][i].positonX = x;
@@ -386,14 +424,12 @@ var constructorEnemie = function constructorEnemie() {
       } else {
         enemies[j][i] = null;
 
-        if (level[j][i] === true) {
-          level[j][i] = null;
+        if (level.enemies[j][i] === true) {
+          level.enemies[j][i] = null;
         }
       }
     }
   }
-
-  console.log(enemies);
 };
 },{"../js/ckc":"js/ckc.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
