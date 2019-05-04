@@ -51,6 +51,9 @@ function defenseBlock  ( x , y ) {
   this.draw();
 }
 defenseBlock.prototype.draw = function () {
+  if (this.life < 0) {
+    return;
+  }
   ctx.beginPath();
   ctx.rect( this.positonX , this.positonY, this.width , this.height);
   ctx.fillStyle = "white";
@@ -66,8 +69,8 @@ var constructorDefenseBlock = function () {
       let x = ( defenseBlocks.positonX + ( 150 * i )) ;
       blocks[i] = new defenseBlock( x , defenseBlocks.positonY )
     }else{
-       console.log(i)
-       blocks[i].draw()
+      
+      blocks[i].draw()
     }
   }
 }
@@ -152,7 +155,6 @@ ballShoot.prototype.move = function () {
   }
   if ( this.life === false ) {  return }
   if ( this.direction === 'top') {
-    console.log(this.positonY )
     this.positonY = this.positonY - this.speed ;
   }else{
     this.positonY = this.positonY + this.speed ;
@@ -214,6 +216,12 @@ setInterval( ()=>{
   //realodEnemies();
   
   for (let i = 0; i < shoots.length; i++) {
+    blocks.forEach( block => {
+      if ( colision( shoots[i] , block )) {
+        block.life--;
+        shoots[i].life = false;
+      }
+    });
     if ( !shoots[i].life ) {
       shoots.splice( i , 1 );
     }if ( shoots[i]) {
@@ -234,7 +242,12 @@ setInterval( ()=>{
     if ( colision(element , player )) {
       player.life--;
       element.life = false;
-    }
+    }blocks.forEach( block => {
+      if ( colision( element , block )) {
+        block.life--;
+        element.life = false;
+      }
+    });
   });
   
   

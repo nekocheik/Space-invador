@@ -207,6 +207,10 @@ function defenseBlock(x, y) {
 }
 
 defenseBlock.prototype.draw = function () {
+  if (this.life < 0) {
+    return;
+  }
+
   ctx.beginPath();
   ctx.rect(this.positonX, this.positonY, this.width, this.height);
   ctx.fillStyle = "white";
@@ -222,7 +226,6 @@ var constructorDefenseBlock = function constructorDefenseBlock() {
       var x = defenseBlocks.positonX + 150 * i;
       blocks[i] = new defenseBlock(x, defenseBlocks.positonY);
     } else {
-      console.log(i);
       blocks[i].draw();
     }
   }
@@ -310,7 +313,6 @@ ballShoot.prototype.move = function () {
   }
 
   if (this.direction === 'top') {
-    console.log(this.positonY);
     this.positonY = this.positonY - this.speed;
   } else {
     this.positonY = this.positonY + this.speed;
@@ -364,7 +366,14 @@ setInterval(function () {
   constructorEnemie();
   constructorDefenseBlock(); //realodEnemies();
 
-  for (var i = 0; i < shoots.length; i++) {
+  var _loop = function _loop(i) {
+    blocks.forEach(function (block) {
+      if ((0, _ckc.colision)(shoots[i], block)) {
+        block.life--;
+        shoots[i].life = false;
+      }
+    });
+
     if (!shoots[i].life) {
       shoots.splice(i, 1);
     }
@@ -372,15 +381,19 @@ setInterval(function () {
     if (shoots[i]) {
       shoots[i].move();
     }
+  };
+
+  for (var i = 0; i < shoots.length; i++) {
+    _loop(i);
   }
 
-  for (var _i = 0; _i < enemiesShoots.length; _i++) {
-    if (!enemiesShoots[_i].life) {
-      enemiesShoots.splice(_i, 1);
+  for (var i = 0; i < enemiesShoots.length; i++) {
+    if (!enemiesShoots[i].life) {
+      enemiesShoots.splice(i, 1);
     }
 
-    if (enemiesShoots[_i]) {
-      enemiesShoots[_i].move();
+    if (enemiesShoots[i]) {
+      enemiesShoots[i].move();
     }
   }
 
@@ -389,15 +402,22 @@ setInterval(function () {
       player.life--;
       element.life = false;
     }
+
+    blocks.forEach(function (block) {
+      if ((0, _ckc.colision)(element, block)) {
+        block.life--;
+        element.life = false;
+      }
+    });
   });
   enemies.forEach(function (tab) {
     tab.forEach(function (element) {
-      for (var _i2 = 0; _i2 < shoots.length; _i2++) {
-        var shoot = shoots[_i2];
+      for (var _i = 0; _i < shoots.length; _i++) {
+        var shoot = shoots[_i];
 
         if (element) {
           if ((0, _ckc.colision)(element, shoot)) {
-            shoots.splice(_i2, 1);
+            shoots.splice(_i, 1);
             level.enemies[element.positonTab.row][element.positonTab.column] = true;
           }
         }
