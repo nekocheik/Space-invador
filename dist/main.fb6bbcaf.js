@@ -125,8 +125,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.createHitbox = createHitbox;
 exports.colision = colision;
-exports.mapHitbox = mapHitbox;
-exports.ballShoot = void 0;
+exports.mapHitboxLeftRight = mapHitboxLeftRight;
+exports.shootsPerimeter = exports.ballShoot = void 0;
 
 function createHitbox(element) {
   var hitbox = {
@@ -144,7 +144,7 @@ function colision(elementOne, elementTwo) {
   }
 }
 
-function mapHitbox(element, map) {
+function mapHitboxLeftRight(element, map) {
   if (element.width + element.positonX > map.width || element.positonX <= 0) {
     if (element.width + element.positonX > map.width) {
       element.positonX = element.positonX - (element.positonX + element.width - map.width);
@@ -171,17 +171,35 @@ var ballShoot = function ballShoot(element, direction, ctx) {
 exports.ballShoot = ballShoot;
 
 ballShoot.prototype.move = function () {
+  if (this.positonY < 0 || this.positonY > 600) {
+    this.life = false;
+  }
+
   if (this.life === false) {
     return;
   }
 
-  this.positonY = this.positonY - this.speed;
+  if (this.direction === 'top') {
+    console.log(this.positonY);
+    this.positonY = this.positonY - this.speed;
+  } else {
+    this.positonY = this.positonY + this.speed;
+  }
+
   this.ctx.beginPath();
   this.ctx.rect(this.positonX, this.positonY, this.width, this.height);
   this.ctx.fillStyle = "red";
   this.ctx.fill();
   this.ctx.closePath();
 };
+
+var shootsPerimeter = function shootsPerimeter(player, enemy) {
+  if (player.positonX < enemy.positonX + 50 && player.positonX > enemy.positonX - 50) {
+    return true;
+  }
+};
+
+exports.shootsPerimeter = shootsPerimeter;
 },{}],"js/main.js":[function(require,module,exports) {
 "use strict";
 
@@ -227,7 +245,7 @@ var groupEnemies = {
     this.direction = this.direction === 'left' ? 'right' : 'left';
 
     if (this.changeDirection !== 0) {
-      this.positonY = this.positonY + this.jump; //console.log(this.positonY)
+      this.positonY = this.positonY + this.jump;
     }
 
     this.numberTouchWall++;
@@ -239,6 +257,7 @@ var groupEnemies = {
   this.width = 32;
   this.height = 32;
   this.commander = false;
+  this.reloadMunition = false;
   this.positonTab = {
     row: j,
     column: i
@@ -254,18 +273,29 @@ createEnemie.prototype.move = function () {
 
   if (this.commander) {
     this.colision();
+    this.shoot();
   }
 };
 
 createEnemie.prototype.colision = function () {
-  if ((0, _ckc.mapHitbox)(this, canvas)) {
+  if ((0, _ckc.mapHitboxLeftRight)(this, canvas)) {
     groupEnemies.changeDirection();
-    console.log(this.positonTab);
   }
 };
 
-createEnemie.prototype.shoot = function () {};
+createEnemie.prototype.shoot = function () {
+  var _this = this;
 
+  if ((0, _ckc.shootsPerimeter)(player, this) && !this.reloadMunition) {
+    this.reloadMunition = true;
+    enemiesShoots.push(new _ckc.ballShoot(this, 'bottom', ctx));
+    setTimeout(function () {
+      _this.reloadMunition = false;
+    }, 500);
+  }
+};
+
+var enemiesShoots = [];
 var shoots = [];
 document.addEventListener('keydown', function () {
   if (event.key === "ArrowRight") {
@@ -275,28 +305,47 @@ document.addEventListener('keydown', function () {
   }
 
   if (event.key === "a") {
-    shoots.push(new _ckc.ballShoot(player, '      ', ctx));
+    shoots.push(new _ckc.ballShoot(player, 'top', ctx));
   }
 });
 setInterval(function () {
-  (0, _ckc.mapHitbox)(player, canvas);
+  (0, _ckc.mapHitboxLeftRight)(player, canvas);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  constructorEnemie();
   player.draw();
   groupEnemies.move();
+  constructorEnemie(); //realodEnemies();
 
   for (var i = 0; i < shoots.length; i++) {
-    shoots[i].move();
+    if (!shoots[i].life) {
+      shoots.splice(i, 1);
+    }
+
+    if (shoots[i]) {
+      shoots[i].move();
+    }
   }
 
+  for (var _i = 0; _i < enemiesShoots.length; _i++) {
+    if (!enemiesShoots[_i].life) {
+      enemiesShoots.splice(_i, 1);
+    }
+
+    if (enemiesShoots[_i]) {
+      enemiesShoots[_i].move();
+    }
+  }
+
+  enemiesShoots.forEach(function (element) {
+    if ((0, _ckc.colision)(element, player)) {}
+  });
   enemies.forEach(function (tab) {
     tab.forEach(function (element) {
-      for (var _i = 0; _i < shoots.length; _i++) {
-        var shoot = shoots[_i];
+      for (var _i2 = 0; _i2 < shoots.length; _i2++) {
+        var shoot = shoots[_i2];
 
         if (element) {
           if ((0, _ckc.colision)(element, shoot)) {
-            shoots.splice(_i, 1);
+            shoots.splice(_i2, 1);
             level[element.positonTab.row][element.positonTab.column] = true;
           }
         }
@@ -304,31 +353,38 @@ setInterval(function () {
     });
   });
 }, 10);
-var enemies = [];
+var enemies = ['first'];
 
 var constructorEnemie = function constructorEnemie() {
-  enemies = [[], [], [], [], []];
+  if (enemies[0] === 'first') {
+    enemies = [[], [], [], [], []];
+  }
+
   var tabCommander = [];
 
-  for (var j = 0; j < level.length; j++) {
+  for (var j = level.length - 1; j > -1; j--) {
     var y = groupEnemies.positonY + groupEnemies.space * j;
 
-    for (var i = 0; i < level[j].length; i++) {
+    for (var i = level[j].length; i > -1; i--) {
       var x = groupEnemies.positonX + groupEnemies.space * i;
 
       if (level[j][i] === 0) {
-        var enemy = new createEnemie(x, y, j, i);
-        enemies[j].push(enemy);
+        if (!enemies[j][i]) {
+          var enemy = new createEnemie(x, y, j, i);
+          enemies[j][i] = enemy;
+        } else {
+          enemies[j][i].positonX = x;
+          enemies[j][i].positonY = y;
+        }
 
         if (!tabCommander[i] && tabCommander[i] !== 0) {
           tabCommander[i] = i;
-          enemy.commander = true;
+          enemies[j][i].commander = true;
         }
 
-        enemy.move();
-        var enemieWidth = i * groupEnemies.space + enemy.width;
+        enemies[j][i].move();
       } else {
-        enemies[j].push(null);
+        enemies[j][i] = null;
 
         if (level[j][i] === true) {
           level[j][i] = null;
@@ -337,7 +393,7 @@ var constructorEnemie = function constructorEnemie() {
     }
   }
 
-  groupEnemies.width = enemieWidth;
+  console.log(enemies);
 };
 },{"../js/ckc":"js/ckc.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];

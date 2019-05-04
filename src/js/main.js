@@ -1,6 +1,6 @@
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
-import { createHitbox , colision , mapHitbox , ballShoot } from '../js/ckc';
+import { createHitbox , colision , mapHitboxLeftRight , ballShoot , shootsPerimeter } from '../js/ckc';
 
 
 
@@ -53,7 +53,6 @@ var groupEnemies = {
     this.direction = ( this.direction === 'left' ? 'right' : 'left');
     if ( this.changeDirection !== 0 ) {
       this.positonY = this.positonY + this.jump ;
-      //console.log(this.positonY)
     }
     this.numberTouchWall++ ;
   }
@@ -67,6 +66,7 @@ createEnemie = function ( x , y , j , i ){
   this.width = 32;
   this.height = 32;
   this.commander = false;
+  this.reloadMunition = false ;
   this.positonTab = {
     row : j ,
     column : i ,
@@ -80,24 +80,30 @@ createEnemie.prototype.move = function () {
   ctx.fill();
   ctx.closePath();
   if (this.commander) {
-    this.colision()
+    this.colision();
+    this.shoot();
   }
 }
 
 
 createEnemie.prototype.colision = function (){
-  if ( mapHitbox ( this , canvas )) {
+  if ( mapHitboxLeftRight ( this , canvas )) {
     groupEnemies.changeDirection();
-    console.log( this.positonTab )  
   }
 }
 
 createEnemie.prototype.shoot = function (){
-  
+  if( shootsPerimeter( player , this ) && !this.reloadMunition ) {
+    this.reloadMunition = true ;
+    enemiesShoots.push(new ballShoot( this , 'bottom' , ctx ))
+    setTimeout(  () => {
+      this.reloadMunition = false;
+    } , 500)
+  }
 }
 
 
-
+var enemiesShoots = [];
 var shoots = [];
 
 document.addEventListener('keydown', () => {
@@ -106,27 +112,48 @@ document.addEventListener('keydown', () => {
   }else if(  event.key === "ArrowLeft" ){
     player.positonX = player.positonX - player.speed ;
   }if( event.key === "a" ){
-    shoots.push( new ballShoot( player , '      ' , ctx ) );
+    shoots.push( new ballShoot( player , 'top' , ctx ) );
   }
 });
 
 
 
 
+
 setInterval( ()=>{ 
   
-  mapHitbox( player , canvas )
-  
-  
+  mapHitboxLeftRight( player , canvas )
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   
-  constructorEnemie();
+  
   player.draw();
   groupEnemies.move();
+  constructorEnemie() ;
+  //realodEnemies();
   
   for (let i = 0; i < shoots.length; i++) {
-    shoots[i].move()
+    if ( !shoots[i].life ) {
+      shoots.splice( i , 1 );
+    }if ( shoots[i]) {
+      shoots[i].move()
+    }
   }
+  
+  for (let i = 0; i < enemiesShoots.length; i++) {
+    if ( !enemiesShoots[i].life ) {
+      enemiesShoots.splice( i , 1 );
+    }
+    if (enemiesShoots[i]) {
+      enemiesShoots[i].move()
+    }
+  }
+  
+  enemiesShoots.forEach(element => {
+    if ( colision(element , player )) {
+      
+    }
+  });
+  
   
   enemies.forEach( tab => {
     tab.forEach(element => {
@@ -142,41 +169,53 @@ setInterval( ()=>{
     });
   });
   
+  
 }, 10);
 
 
 
-var enemies = [];
+var enemies = ['first'];
 
 var constructorEnemie = function () {
-  enemies =  [[],
-              [],
-              [],
-              [],
-              []
-             ];
-             let tabCommander = []
-  for (let j = 0; j < level.length; j++) {
-    let y =  groupEnemies.positonY + ( groupEnemies.space * j ) ;
-    for (let i = 0; i < level[j].length; i++) {
-      let x =  groupEnemies.positonX + (  groupEnemies.space * i ) ;
-      if ( level[j][i] === 0 ) {
-        let enemy = new createEnemie( x , y , j , i );
-        enemies[j].push(enemy) 
-        if ( !tabCommander[i] && tabCommander[i] !== 0 ) {
-          tabCommander[i] = i ;
-          enemy.commander = true;
-        }
-        enemy.move();
-        var enemieWidth = i * groupEnemies.space + enemy.width ;
-      }else{
-        enemies[j].push( null );
-        if ( level[j][i] === true ){
-          level[j][i] = null;
-        }
-      }
-    } 
-  }
-  groupEnemies.width = enemieWidth ;
+  if ( enemies[0] === 'first') {
+    enemies = [[],
+    [],
+    [],
+    [],
+    []
+  ];
 }
+
+let tabCommander = []
+for (let j = ( level.length - 1  ) ; j > -1 ; j--) {
+  let y =  groupEnemies.positonY + ( groupEnemies.space * j ) ;
+  for (let i = ( level[j].length  ) ; i > -1 ; i--) {
+    let x =  groupEnemies.positonX + (  groupEnemies.space * i ) ;
+    if ( level[j][i] === 0 ) {
+      if ( !enemies[j][i] ) {
+        let enemy = new createEnemie( x , y , j  , i  );
+        enemies[j][i] = enemy ;
+      }else{
+        enemies[j][i].positonX = x ;
+        enemies[j][i].positonY = y ;
+      }
+      if( !tabCommander[i] && tabCommander[i] !== 0 ) {
+        tabCommander[i] = i ;
+        enemies[j][i].commander = true;
+      }
+      enemies[j][i].move();
+    }
+    else{
+      enemies[j][i] =  null ;
+      if ( level[j][i] === true ){
+        level[j][i] = null;
+      }
+    }
+  } 
+}
+console.log(enemies)
+}
+
+
+
 

@@ -17,7 +17,7 @@ function colision ( elementOne , elementTwo ){
     }  
   }
   
-  function mapHitbox ( element , map ){
+  function mapHitboxLeftRight ( element , map ){
     if( element.width + element.positonX > map.width || element.positonX <= 0 ){
       if ( element.width + element.positonX > map.width ) {
         element.positonX = element.positonX - ( ( element.positonX + element.width ) - map.width) ;
@@ -41,10 +41,16 @@ function colision ( elementOne , elementTwo ){
   } 
   
   ballShoot.prototype.move = function () {
-    if ( this.life === false ) { 
-      
-      return }
-    this.positonY = this.positonY - this.speed ;
+    if ( this.positonY < 0 || this.positonY > 600 ) {
+      this.life = false ;
+    }
+    if ( this.life === false ) {  return }
+      if ( this.direction === 'top') {
+        console.log(this.positonY )
+        this.positonY = this.positonY - this.speed ;
+      }else{
+        this.positonY = this.positonY + this.speed ;
+      }
     this.ctx.beginPath();
     this.ctx.rect( this.positonX , this.positonY, this.width , this.height);
     this.ctx.fillStyle = "red";
@@ -52,5 +58,12 @@ function colision ( elementOne , elementTwo ){
     this.ctx.closePath();
   }
   
+
+  var shootsPerimeter = function ( player , enemy ) {
+    if ( player.positonX < ( enemy.positonX + 50 ) && player.positonX > ( enemy.positonX - 50) ){
+      return true
+    }
+
+  }
   
-  export { createHitbox , colision , mapHitbox , ballShoot };
+  export { createHitbox , colision , mapHitboxLeftRight , ballShoot , shootsPerimeter  };
