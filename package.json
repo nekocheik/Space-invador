@@ -6,15 +6,17 @@
   "scripts": {
     "dev": "parcel src/index.html",
     "build": "parcel build src/index.html"
-  },
+    },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "lib": "^4.0.2",
     "main.css": "^1.0.0",
     "parcel-bundler": "^1.12.3",
     "reset.css": "^2.0.2"
   },
   "devDependencies": {
+    "gulp": "^4.0.0",
     "sass": "^1.17.3"
   }
 }
