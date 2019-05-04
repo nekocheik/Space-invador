@@ -46,42 +46,10 @@ table {
 	border-collapse: collapse;
 	border-spacing: 0;
 }
-.ctx {
-  width: 200px;
-  height: 60px;
-  border: solid black 1px;
-  position: relative;
-  background-color: white;
+canvas {
+  background: #eee;
   display: block;
   margin: auto;
-}
-.ctx div.player {
-  position: absolute;
-  width: 5vh;
-  height: 5vh;
-  transition: left 200ms;
-  border: solid black 1px;
-}
-.ctx div.enemy {
-  width: 40px;
-  height: 40px;
-  position: absolute;
-  display: block;
-  background-color: black;
-}
-
-body {
-  display: block;
-  margin: auto;
-}
-
-.shoot {
-  position: absolute;
-  width: 1vh;
-  height: 1vh;
-  background-color: black;
-  transition: bottom 5ms;
-  border-radius: 100%;
 }
 
 /*# sourceMappingURL=/style.6b54f5b7.css.map */

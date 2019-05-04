@@ -117,779 +117,229 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   return newRequire;
-})({"../node_modules/events/events.js":[function(require,module,exports) {
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-'use strict';
-
-var R = typeof Reflect === 'object' ? Reflect : null;
-var ReflectApply = R && typeof R.apply === 'function' ? R.apply : function ReflectApply(target, receiver, args) {
-  return Function.prototype.apply.call(target, receiver, args);
-};
-var ReflectOwnKeys;
-
-if (R && typeof R.ownKeys === 'function') {
-  ReflectOwnKeys = R.ownKeys;
-} else if (Object.getOwnPropertySymbols) {
-  ReflectOwnKeys = function ReflectOwnKeys(target) {
-    return Object.getOwnPropertyNames(target).concat(Object.getOwnPropertySymbols(target));
-  };
-} else {
-  ReflectOwnKeys = function ReflectOwnKeys(target) {
-    return Object.getOwnPropertyNames(target);
-  };
-}
-
-function ProcessEmitWarning(warning) {
-  if (console && console.warn) console.warn(warning);
-}
-
-var NumberIsNaN = Number.isNaN || function NumberIsNaN(value) {
-  return value !== value;
-};
-
-function EventEmitter() {
-  EventEmitter.init.call(this);
-}
-
-module.exports = EventEmitter; // Backwards-compat with node 0.10.x
-
-EventEmitter.EventEmitter = EventEmitter;
-EventEmitter.prototype._events = undefined;
-EventEmitter.prototype._eventsCount = 0;
-EventEmitter.prototype._maxListeners = undefined; // By default EventEmitters will print a warning if more than 10 listeners are
-// added to it. This is a useful default which helps finding memory leaks.
-
-var defaultMaxListeners = 10;
-Object.defineProperty(EventEmitter, 'defaultMaxListeners', {
-  enumerable: true,
-  get: function () {
-    return defaultMaxListeners;
-  },
-  set: function (arg) {
-    if (typeof arg !== 'number' || arg < 0 || NumberIsNaN(arg)) {
-      throw new RangeError('The value of "defaultMaxListeners" is out of range. It must be a non-negative number. Received ' + arg + '.');
-    }
-
-    defaultMaxListeners = arg;
-  }
-});
-
-EventEmitter.init = function () {
-  if (this._events === undefined || this._events === Object.getPrototypeOf(this)._events) {
-    this._events = Object.create(null);
-    this._eventsCount = 0;
-  }
-
-  this._maxListeners = this._maxListeners || undefined;
-}; // Obviously not all Emitters should be limited to 10. This function allows
-// that to be increased. Set to zero for unlimited.
-
-
-EventEmitter.prototype.setMaxListeners = function setMaxListeners(n) {
-  if (typeof n !== 'number' || n < 0 || NumberIsNaN(n)) {
-    throw new RangeError('The value of "n" is out of range. It must be a non-negative number. Received ' + n + '.');
-  }
-
-  this._maxListeners = n;
-  return this;
-};
-
-function $getMaxListeners(that) {
-  if (that._maxListeners === undefined) return EventEmitter.defaultMaxListeners;
-  return that._maxListeners;
-}
-
-EventEmitter.prototype.getMaxListeners = function getMaxListeners() {
-  return $getMaxListeners(this);
-};
-
-EventEmitter.prototype.emit = function emit(type) {
-  var args = [];
-
-  for (var i = 1; i < arguments.length; i++) args.push(arguments[i]);
-
-  var doError = type === 'error';
-  var events = this._events;
-  if (events !== undefined) doError = doError && events.error === undefined;else if (!doError) return false; // If there is no 'error' event listener then throw.
-
-  if (doError) {
-    var er;
-    if (args.length > 0) er = args[0];
-
-    if (er instanceof Error) {
-      // Note: The comments on the `throw` lines are intentional, they show
-      // up in Node's output if this results in an unhandled exception.
-      throw er; // Unhandled 'error' event
-    } // At least give some kind of context to the user
-
-
-    var err = new Error('Unhandled error.' + (er ? ' (' + er.message + ')' : ''));
-    err.context = er;
-    throw err; // Unhandled 'error' event
-  }
-
-  var handler = events[type];
-  if (handler === undefined) return false;
-
-  if (typeof handler === 'function') {
-    ReflectApply(handler, this, args);
-  } else {
-    var len = handler.length;
-    var listeners = arrayClone(handler, len);
-
-    for (var i = 0; i < len; ++i) ReflectApply(listeners[i], this, args);
-  }
-
-  return true;
-};
-
-function _addListener(target, type, listener, prepend) {
-  var m;
-  var events;
-  var existing;
-
-  if (typeof listener !== 'function') {
-    throw new TypeError('The "listener" argument must be of type Function. Received type ' + typeof listener);
-  }
-
-  events = target._events;
-
-  if (events === undefined) {
-    events = target._events = Object.create(null);
-    target._eventsCount = 0;
-  } else {
-    // To avoid recursion in the case that type === "newListener"! Before
-    // adding it to the listeners, first emit "newListener".
-    if (events.newListener !== undefined) {
-      target.emit('newListener', type, listener.listener ? listener.listener : listener); // Re-assign `events` because a newListener handler could have caused the
-      // this._events to be assigned to a new object
-
-      events = target._events;
-    }
-
-    existing = events[type];
-  }
-
-  if (existing === undefined) {
-    // Optimize the case of one listener. Don't need the extra array object.
-    existing = events[type] = listener;
-    ++target._eventsCount;
-  } else {
-    if (typeof existing === 'function') {
-      // Adding the second element, need to change to array.
-      existing = events[type] = prepend ? [listener, existing] : [existing, listener]; // If we've already got an array, just append.
-    } else if (prepend) {
-      existing.unshift(listener);
-    } else {
-      existing.push(listener);
-    } // Check for listener leak
-
-
-    m = $getMaxListeners(target);
-
-    if (m > 0 && existing.length > m && !existing.warned) {
-      existing.warned = true; // No error code for this since it is a Warning
-      // eslint-disable-next-line no-restricted-syntax
-
-      var w = new Error('Possible EventEmitter memory leak detected. ' + existing.length + ' ' + String(type) + ' listeners ' + 'added. Use emitter.setMaxListeners() to ' + 'increase limit');
-      w.name = 'MaxListenersExceededWarning';
-      w.emitter = target;
-      w.type = type;
-      w.count = existing.length;
-      ProcessEmitWarning(w);
-    }
-  }
-
-  return target;
-}
-
-EventEmitter.prototype.addListener = function addListener(type, listener) {
-  return _addListener(this, type, listener, false);
-};
-
-EventEmitter.prototype.on = EventEmitter.prototype.addListener;
-
-EventEmitter.prototype.prependListener = function prependListener(type, listener) {
-  return _addListener(this, type, listener, true);
-};
-
-function onceWrapper() {
-  var args = [];
-
-  for (var i = 0; i < arguments.length; i++) args.push(arguments[i]);
-
-  if (!this.fired) {
-    this.target.removeListener(this.type, this.wrapFn);
-    this.fired = true;
-    ReflectApply(this.listener, this.target, args);
-  }
-}
-
-function _onceWrap(target, type, listener) {
-  var state = {
-    fired: false,
-    wrapFn: undefined,
-    target: target,
-    type: type,
-    listener: listener
-  };
-  var wrapped = onceWrapper.bind(state);
-  wrapped.listener = listener;
-  state.wrapFn = wrapped;
-  return wrapped;
-}
-
-EventEmitter.prototype.once = function once(type, listener) {
-  if (typeof listener !== 'function') {
-    throw new TypeError('The "listener" argument must be of type Function. Received type ' + typeof listener);
-  }
-
-  this.on(type, _onceWrap(this, type, listener));
-  return this;
-};
-
-EventEmitter.prototype.prependOnceListener = function prependOnceListener(type, listener) {
-  if (typeof listener !== 'function') {
-    throw new TypeError('The "listener" argument must be of type Function. Received type ' + typeof listener);
-  }
-
-  this.prependListener(type, _onceWrap(this, type, listener));
-  return this;
-}; // Emits a 'removeListener' event if and only if the listener was removed.
-
-
-EventEmitter.prototype.removeListener = function removeListener(type, listener) {
-  var list, events, position, i, originalListener;
-
-  if (typeof listener !== 'function') {
-    throw new TypeError('The "listener" argument must be of type Function. Received type ' + typeof listener);
-  }
-
-  events = this._events;
-  if (events === undefined) return this;
-  list = events[type];
-  if (list === undefined) return this;
-
-  if (list === listener || list.listener === listener) {
-    if (--this._eventsCount === 0) this._events = Object.create(null);else {
-      delete events[type];
-      if (events.removeListener) this.emit('removeListener', type, list.listener || listener);
-    }
-  } else if (typeof list !== 'function') {
-    position = -1;
-
-    for (i = list.length - 1; i >= 0; i--) {
-      if (list[i] === listener || list[i].listener === listener) {
-        originalListener = list[i].listener;
-        position = i;
-        break;
-      }
-    }
-
-    if (position < 0) return this;
-    if (position === 0) list.shift();else {
-      spliceOne(list, position);
-    }
-    if (list.length === 1) events[type] = list[0];
-    if (events.removeListener !== undefined) this.emit('removeListener', type, originalListener || listener);
-  }
-
-  return this;
-};
-
-EventEmitter.prototype.off = EventEmitter.prototype.removeListener;
-
-EventEmitter.prototype.removeAllListeners = function removeAllListeners(type) {
-  var listeners, events, i;
-  events = this._events;
-  if (events === undefined) return this; // not listening for removeListener, no need to emit
-
-  if (events.removeListener === undefined) {
-    if (arguments.length === 0) {
-      this._events = Object.create(null);
-      this._eventsCount = 0;
-    } else if (events[type] !== undefined) {
-      if (--this._eventsCount === 0) this._events = Object.create(null);else delete events[type];
-    }
-
-    return this;
-  } // emit removeListener for all listeners on all events
-
-
-  if (arguments.length === 0) {
-    var keys = Object.keys(events);
-    var key;
-
-    for (i = 0; i < keys.length; ++i) {
-      key = keys[i];
-      if (key === 'removeListener') continue;
-      this.removeAllListeners(key);
-    }
-
-    this.removeAllListeners('removeListener');
-    this._events = Object.create(null);
-    this._eventsCount = 0;
-    return this;
-  }
-
-  listeners = events[type];
-
-  if (typeof listeners === 'function') {
-    this.removeListener(type, listeners);
-  } else if (listeners !== undefined) {
-    // LIFO order
-    for (i = listeners.length - 1; i >= 0; i--) {
-      this.removeListener(type, listeners[i]);
-    }
-  }
-
-  return this;
-};
-
-function _listeners(target, type, unwrap) {
-  var events = target._events;
-  if (events === undefined) return [];
-  var evlistener = events[type];
-  if (evlistener === undefined) return [];
-  if (typeof evlistener === 'function') return unwrap ? [evlistener.listener || evlistener] : [evlistener];
-  return unwrap ? unwrapListeners(evlistener) : arrayClone(evlistener, evlistener.length);
-}
-
-EventEmitter.prototype.listeners = function listeners(type) {
-  return _listeners(this, type, true);
-};
-
-EventEmitter.prototype.rawListeners = function rawListeners(type) {
-  return _listeners(this, type, false);
-};
-
-EventEmitter.listenerCount = function (emitter, type) {
-  if (typeof emitter.listenerCount === 'function') {
-    return emitter.listenerCount(type);
-  } else {
-    return listenerCount.call(emitter, type);
-  }
-};
-
-EventEmitter.prototype.listenerCount = listenerCount;
-
-function listenerCount(type) {
-  var events = this._events;
-
-  if (events !== undefined) {
-    var evlistener = events[type];
-
-    if (typeof evlistener === 'function') {
-      return 1;
-    } else if (evlistener !== undefined) {
-      return evlistener.length;
-    }
-  }
-
-  return 0;
-}
-
-EventEmitter.prototype.eventNames = function eventNames() {
-  return this._eventsCount > 0 ? ReflectOwnKeys(this._events) : [];
-};
-
-function arrayClone(arr, n) {
-  var copy = new Array(n);
-
-  for (var i = 0; i < n; ++i) copy[i] = arr[i];
-
-  return copy;
-}
-
-function spliceOne(list, index) {
-  for (; index + 1 < list.length; index++) list[index] = list[index + 1];
-
-  list.pop();
-}
-
-function unwrapListeners(arr) {
-  var ret = new Array(arr.length);
-
-  for (var i = 0; i < ret.length; ++i) {
-    ret[i] = arr[i].listener || arr[i];
-  }
-
-  return ret;
-}
-},{}],"../node_modules/domain-browser/source/index.js":[function(require,module,exports) {
-// This file should be ES5 compatible
-
-/* eslint prefer-spread:0, no-var:0, prefer-reflect:0, no-magic-numbers:0 */
-'use strict';
-
-module.exports = function () {
-  // Import Events
-  var events = require('events'); // Export Domain
-
-
-  var domain = {};
-
-  domain.createDomain = domain.create = function () {
-    var d = new events.EventEmitter();
-
-    function emitError(e) {
-      d.emit('error', e);
-    }
-
-    d.add = function (emitter) {
-      emitter.on('error', emitError);
-    };
-
-    d.remove = function (emitter) {
-      emitter.removeListener('error', emitError);
-    };
-
-    d.bind = function (fn) {
-      return function () {
-        var args = Array.prototype.slice.call(arguments);
-
-        try {
-          fn.apply(null, args);
-        } catch (err) {
-          emitError(err);
-        }
-      };
-    };
-
-    d.intercept = function (fn) {
-      return function (err) {
-        if (err) {
-          emitError(err);
-        } else {
-          var args = Array.prototype.slice.call(arguments, 1);
-
-          try {
-            fn.apply(null, args);
-          } catch (err) {
-            emitError(err);
-          }
-        }
-      };
-    };
-
-    d.run = function (fn) {
-      try {
-        fn();
-      } catch (err) {
-        emitError(err);
-      }
-
-      return this;
-    };
-
-    d.dispose = function () {
-      this.removeAllListeners();
-      return this;
-    };
-
-    d.enter = d.exit = function () {
-      return this;
-    };
-
-    return d;
-  };
-
-  return domain;
-}.call(this);
-},{"events":"../node_modules/events/events.js"}],"js/main.js":[function(require,module,exports) {
+})({"js/ckc.js":[function(require,module,exports) {
 "use strict";
 
-var _events = require("events");
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.createHitbox = createHitbox;
+exports.colision = colision;
+exports.mapHitbox = mapHitbox;
+exports.ballShoot = void 0;
 
-var _domain = require("domain");
-
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-//_________________________________________________________ -fuction get position- ________________________________________________________//
-var getPosition = function getPosition(element, position) {
-  if (!element) {
-    console.error(' ---- getPosition ---- as not a element on the function');
-    return;
-  }
-
-  var positionX = element.offsetLeft + element.clientWidth / 2;
-  var positionY = element.clientTop + element.clientHeight / 2;
-  var center = element.offsetLeft + element.clientWidth / 2 - (element.clientTop + element.clientHeight / 2);
-
-  if (position === 'x') {
-    return positionX;
-  } else if (position === 'y') {
-    return positionY;
-  } else {
-    return center;
-  }
-}; ////---Remove objet---//// 
-
-
-var check = document.createElement('div');
-
-function destrutor(element) {
-  if (!element) {
-    console.error('----- destrutor ---- add a element your are forget ?');
-    return;
-  }
-
-  if (_typeof(element) === 'object') {
-    element.element.remove();
-  }
-} //_______________________________________________________________________________________________________________________________________
-//_________________________________________________________ Player__________________________________________________________________________//
-//__________________________________________________________________________________________________________________________________________
-
-
-var creatPlayer = function creatPlayer() {
-  this.element = document.querySelector('.ctx .player');
-};
-
-creatPlayer.prototype.position = function () {
-  this.x = getPosition(this.element, 'x');
-  this.y = getPosition(this.element, 'y');
-  this.center = getPosition(this.element, 'center'); //console.log('get the position is true' , this.center , this.y , this.x )
-}; ///--- create a player ---///
-
-
-var player = new creatPlayer(); ///--- interval for get the position of the player ---///
-
-setInterval(function () {
-  player.position();
-}, 20);
-player.position(); ////---- player move  ----////
-
-var Move = {
-  x: 1,
-  speed: 4,
-  ArrowRight: function ArrowRight() {
-    return this.x += this.speed;
-  },
-  ArrowLeft: function ArrowLeft() {
-    return this.x -= this.speed;
-  }
-}; // Event for player move .
-
-document.addEventListener('keydown', function () {
-  if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
-    player.element.style.left = "".concat(Move[event.key](player) / 3, "vw");
-  }
-}); //_______________________________________________________________________________________________________________________________________
-/////_________________________________________________________ enemies __________________________________________________________________________/
-//__________________________________________________________________________________________________________________________________________
-///--- Array where the enemy will go --- -/ Array enemies /- ///
-
-var enemies = []; ///--- Constructor for enemy ---///
-
-var enemy = function enemy(ctx, numberCtx, left) {
-  var enemy = document.createElement('div');
-  enemy.className = 'enemy';
-  this.element = enemy;
-  this.direction = 'right';
-  ctx.appendChild(enemy);
-  this.speed = left;
-  this.numberCtx = numberCtx; // call the new position for do the move //
-
-  this.moveAuto();
-}; ///--- Get enemy position ---///
-
-
-enemy.prototype.getPosition = function () {
-  this.positions = {
-    x: getPosition(this.element, 'x'),
-    y: getPosition(this.element, 'y'),
-    center: getPosition(this.element, 'center')
+function createHitbox(element) {
+  var hitbox = {
+    y: element.offsetTop,
+    x: element.offsetLeft,
+    width: element.clientWidth,
+    height: element.clientHeight
   };
-  this.hitbox();
-}; ///--- Create hitbox ---///
-
-
-enemy.prototype.hitbox = function () {
-  this.body = {
-    topLeft: this.element.offsetLeft,
-    topRight: this.element.offsetLeft + this.element.clientWidth,
-    bottomLeft: this.element.offsetLeft,
-    bottomRight: this.element.clientWidth + this.element.offsetLeft
-  };
-  this.wall();
-}; ///--- detect if touch the wall ---///
-
-
-enemy.prototype.wall = function () {
-  if (this.numberCtx < 9 && this.body.bottomRight < maps[this.numberCtx].width && this.body.bottomLeft >= 10) {
-    this.moveAuto();
-  } else {
-    this.changeDirection();
-  }
-};
-
-enemy.prototype.changeDirection = function () {
-  this.direction = this.direction === "right" ? "left" : "right";
-  this.moveAuto();
-}; ///--- detect if touch the wall ---///
-
-
-enemy.prototype.moveAuto = function () {
-  var _this = this;
-
-  if (this.direction === 'right') {
-    this.speed += 10;
-    this.element.style.left = "".concat(this.speed, "px");
-  } else {
-    this.speed -= 10;
-    this.element.style.left = "".concat(this.speed, "px");
-  }
-
-  setTimeout(function () {
-    _this.getPosition();
-  }, 100);
-}; ///---Remove the enemy ---///
-
-
-enemy.prototype.removeObjet = function () {
-  this.life = false;
-  destrutor(this);
-  this.remove();
-}; //_______________________________________________________________________________________________________________________________________
-//_________________________________________________________ Map __________________________________________________________________________//
-//________________________________________________________________________________________________________________________________________
-
-
-var mapsConstructor = function mapsConstructor(element, i) {
-  this.element = element;
-  this.width = null;
-  this.height = null;
-  this.child = [];
-  this.mapsNumber = i;
-  this.Mapping();
-};
-
-mapsConstructor.prototype.Mapping = function (i) {
-  this.width = this.element.clientWidth;
-  this.height = this.element.clientHeight;
-};
-
-mapsConstructor.prototype.mapenemyCreat = function () {
-  if (this.mapsNumber < 1) {
-    for (var i = 0; i < 1; i++) {
-      var left = 5 * i;
-      this.child.push(new enemy(this.element, this.mapsNumber, left));
-    }
-  }
-}; //  add maps .
-
-
-var mapsElements = document.querySelectorAll('.ctx');
-var maps = [];
-
-for (var i = 0; i < mapsElements.length; i++) {
-  maps[i] = new mapsConstructor(mapsElements[i], i);
-  maps[i].mapenemyCreat();
+  return hitbox;
 }
 
-console.log(maps[1]); //_______________________________________________________________________________________________________________________________________
-////_________________________________________________________ shoot__________________________________________________________________________//
-//__________________________________________________________________________________________________________________________________________
-///--- shoot object ---///
-
-var shoots = {
-  number: 0 // index of shoot give the id of shoot .
-
-}; ///--- action shoot ---//
-
-document.addEventListener('keypress', function (event) {
-  if (event.keyCode === 32) {
-    shoots[shoots.number + 1] = new shoot();
+function colision(elementOne, elementTwo) {
+  if (elementOne.positonX < elementTwo.positonX + elementTwo.width && elementOne.positonX + elementOne.width > elementTwo.positonX && elementOne.positonY < elementTwo.positonY + elementTwo.height && elementOne.height + elementOne.positonY > elementTwo.positonY) {
+    return true;
   }
-});
+}
 
-var shoot = function shoot() {
-  shoots.number++;
-  this.numberOf = shoots.number;
-  this.shoot = document.createElement('div');
-  this.shoot.className = "shoot"; ///
-
-  this.owner = player;
-  this.life = true;
-  this.speed = 0;
-  this.ctxNumber = 9;
-  this.initialisation();
-}; ///--- appendChild the element ---///
-
-
-shoot.prototype.initialisation = function () {
-  this.shoot.style.left = "".concat(this.owner.center + this.owner.element.clientHeight / 2, "px");
-  maps[9].element.appendChild(this.shoot);
-  this.position();
-}; ///--- this is initial position of shoot ---///
-
-
-shoot.prototype.position = function (element) {
-  // Get position .
-  this.y = this.owner.y;
-  this.x = this.owner.x;
-  this.shootMove();
-}; //   shootMove( this.shoot , 0 , shoots[this.numberOf] , 9 , this.owner.center )
-
-
-shoot.prototype.mapping = function () {
-  //-- move whene the shoot change the map --//
-  if (maps[this.ctxNumber].height <= this.speed) {
-    this.ctxNumber--;
-
-    if (this.ctxNumber === -1) {
-      return this.shoot.remove();
+function mapHitbox(element, map) {
+  if (element.width + element.positonX > map.width || element.positonX <= 0) {
+    if (element.width + element.positonX > map.width) {
+      element.positonX = element.positonX - (element.positonX + element.width - map.width);
+    } else {
+      element.positonX = 0;
     }
 
-    this.speed = 0;
-    maps[this.ctxNumber].element.appendChild(this.shoot);
-    if (maps[this.ctxNumber].child[0]) console.log(maps[this.ctxNumber].child[0].body.topLeft, this.shoot.offsetLeft, maps[this.ctxNumber].child[0].body.topRight);
+    return true;
+  }
+}
 
-    for (var _i = 0; _i < maps[this.ctxNumber].child.length; _i++) {
-      if (maps[this.ctxNumber].child[_i] && this.shoot.offsetLeft < maps[this.ctxNumber].child[_i].body.topRight && this.shoot.offsetLeft > maps[this.ctxNumber].child[_i].body.topLeft) {
-        maps[this.ctxNumber].child[_i].element.remove();
+var ballShoot = function ballShoot(element, direction, ctx) {
+  this.ctx = ctx;
+  this.shooter = element;
+  this.positonX = element.positonX + element.width / 2;
+  this.positonY = element.positonY;
+  this.width = 5;
+  this.height = 5;
+  this.speed = 8;
+  this.direction = direction;
+  this.life = true;
+};
 
-        maps[this.ctxNumber].child[_i] = null;
-        this.shoot.remove();
-        return;
+exports.ballShoot = ballShoot;
+
+ballShoot.prototype.move = function () {
+  if (this.life === false) {
+    return;
+  }
+
+  this.positonY = this.positonY - this.speed;
+  this.ctx.beginPath();
+  this.ctx.rect(this.positonX, this.positonY, this.width, this.height);
+  this.ctx.fillStyle = "red";
+  this.ctx.fill();
+  this.ctx.closePath();
+};
+},{}],"js/main.js":[function(require,module,exports) {
+"use strict";
+
+var _ckc = require("../js/ckc");
+
+var canvas = document.getElementById("myCanvas");
+var ctx = canvas.getContext("2d");
+var level = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
+var player = {
+  positonX: 100,
+  positonY: 550,
+  width: 50,
+  height: 20,
+  speed: 30,
+  draw: function draw() {
+    ctx.beginPath();
+    ctx.rect(this.positonX, this.positonY, this.width, this.height);
+    ctx.fillStyle = "#0095DD";
+    ctx.fill();
+    ctx.closePath();
+  }
+};
+
+var groupEnemies = {
+  positonX: 118,
+  positonY: 80,
+  speed: 0.3,
+  width: null,
+  direction: 'left',
+  numberTouchWall: 0,
+  space: 50,
+  jump: 10,
+  move: function move() {
+    if (this.direction === 'left') {
+      this.positonX = this.positonX + this.speed;
+    } else {
+      this.positonX = this.positonX - this.speed;
+    }
+
+    ;
+  },
+  changeDirection: function changeDirection() {
+    this.direction = this.direction === 'left' ? 'right' : 'left';
+
+    if (this.changeDirection !== 0) {
+      this.positonY = this.positonY + this.jump; //console.log(this.positonY)
+    }
+
+    this.numberTouchWall++;
+  }
+},
+    createEnemie = function createEnemie(x, y, j, i) {
+  this.positonX = x;
+  this.positonY = y;
+  this.width = 32;
+  this.height = 32;
+  this.commander = false;
+  this.positonTab = {
+    row: j,
+    column: i
+  };
+};
+
+createEnemie.prototype.move = function () {
+  ctx.beginPath();
+  ctx.rect(this.positonX, this.positonY, this.width, this.height);
+  ctx.fillStyle = "black";
+  ctx.fill();
+  ctx.closePath();
+
+  if (this.commander) {
+    this.colision();
+  }
+};
+
+createEnemie.prototype.colision = function () {
+  if ((0, _ckc.mapHitbox)(this, canvas)) {
+    groupEnemies.changeDirection();
+    console.log(this.positonTab);
+  }
+};
+
+createEnemie.prototype.shoot = function () {};
+
+var shoots = [];
+document.addEventListener('keydown', function () {
+  if (event.key === "ArrowRight") {
+    player.positonX = player.positonX + player.speed;
+  } else if (event.key === "ArrowLeft") {
+    player.positonX = player.positonX - player.speed;
+  }
+
+  if (event.key === "a") {
+    shoots.push(new _ckc.ballShoot(player, '      ', ctx));
+  }
+});
+setInterval(function () {
+  (0, _ckc.mapHitbox)(player, canvas);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  constructorEnemie();
+  player.draw();
+  groupEnemies.move();
+
+  for (var i = 0; i < shoots.length; i++) {
+    shoots[i].move();
+  }
+
+  enemies.forEach(function (tab) {
+    tab.forEach(function (element) {
+      for (var _i = 0; _i < shoots.length; _i++) {
+        var shoot = shoots[_i];
+
+        if (element) {
+          if ((0, _ckc.colision)(element, shoot)) {
+            shoots.splice(_i, 1);
+            level[element.positonTab.row][element.positonTab.column] = true;
+          }
+        }
+      }
+    });
+  });
+}, 10);
+var enemies = [];
+
+var constructorEnemie = function constructorEnemie() {
+  enemies = [[], [], [], [], []];
+  var tabCommander = [];
+
+  for (var j = 0; j < level.length; j++) {
+    var y = groupEnemies.positonY + groupEnemies.space * j;
+
+    for (var i = 0; i < level[j].length; i++) {
+      var x = groupEnemies.positonX + groupEnemies.space * i;
+
+      if (level[j][i] === 0) {
+        var enemy = new createEnemie(x, y, j, i);
+        enemies[j].push(enemy);
+
+        if (!tabCommander[i] && tabCommander[i] !== 0) {
+          tabCommander[i] = i;
+          enemy.commander = true;
+        }
+
+        enemy.move();
+        var enemieWidth = i * groupEnemies.space + enemy.width;
+      } else {
+        enemies[j].push(null);
+
+        if (level[j][i] === true) {
+          level[j][i] = null;
+        }
       }
     }
   }
 
-  this.shootMove();
-}; ///---shoot move---///
-
-
-shoot.prototype.shootMove = function () {
-  var _this2 = this;
-
-  this.speed = this.speed + 10;
-  this.shoot.style.bottom = "".concat(this.speed, "px");
-  setTimeout(function () {
-    _this2.mapping();
-  }, 10);
+  groupEnemies.width = enemieWidth;
 };
-},{"events":"../node_modules/events/events.js","domain":"../node_modules/domain-browser/source/index.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"../js/ckc":"js/ckc.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -917,7 +367,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61541" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56893" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
