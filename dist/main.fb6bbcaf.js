@@ -163,13 +163,18 @@ var ballShoot = function ballShoot(element, direction, ctx) {
   this.positonY = element.positonY;
   this.width = 5;
   this.height = 5;
-  this.speed = 5;
+  this.speed = 8;
   this.direction = direction;
+  this.life = true;
 };
 
 exports.ballShoot = ballShoot;
 
 ballShoot.prototype.move = function () {
+  if (this.life === false) {
+    return;
+  }
+
   this.positonY = this.positonY - this.speed;
   this.ctx.beginPath();
   this.ctx.rect(this.positonX, this.positonY, this.width, this.height);
@@ -184,7 +189,7 @@ var _ckc = require("../js/ckc");
 
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
-var level = [['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'], ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'], ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'], ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'], ['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0']];
+var level = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
 var player = {
   positonX: 100,
   positonY: 550,
@@ -200,13 +205,15 @@ var player = {
   }
 };
 
-var enemies = {
+var groupEnemies = {
   positonX: 118,
   positonY: 80,
-  speed: 0.4,
+  speed: 0.3,
   width: null,
   direction: 'left',
-  changeDirection: false,
+  numberTouchWall: 0,
+  space: 50,
+  jump: 10,
   move: function move() {
     if (this.direction === 'left') {
       this.positonX = this.positonX + this.speed;
@@ -215,6 +222,15 @@ var enemies = {
     }
 
     ;
+  },
+  changeDirection: function changeDirection() {
+    this.direction = this.direction === 'left' ? 'right' : 'left';
+
+    if (this.changeDirection !== 0) {
+      this.positonY = this.positonY + this.jump; //console.log(this.positonY)
+    }
+
+    this.numberTouchWall++;
   }
 },
     createEnemie = function createEnemie(x, y, j, i) {
@@ -222,6 +238,7 @@ var enemies = {
   this.positonY = y;
   this.width = 32;
   this.height = 32;
+  this.commander = false;
   this.positonTab = {
     row: j,
     column: i
@@ -234,7 +251,20 @@ createEnemie.prototype.move = function () {
   ctx.fillStyle = "black";
   ctx.fill();
   ctx.closePath();
+
+  if (this.commander) {
+    this.colision();
+  }
 };
+
+createEnemie.prototype.colision = function () {
+  if ((0, _ckc.mapHitbox)(this, canvas)) {
+    groupEnemies.changeDirection();
+    console.log(this.positonTab);
+  }
+};
+
+createEnemie.prototype.shoot = function () {};
 
 var shoots = [];
 document.addEventListener('keydown', function () {
@@ -250,55 +280,64 @@ document.addEventListener('keydown', function () {
 });
 setInterval(function () {
   (0, _ckc.mapHitbox)(player, canvas);
-
-  if ((0, _ckc.mapHitbox)(enemies, canvas)) {
-    enemies.direction = enemies.direction === 'left' ? 'right' : 'left';
-
-    if (enemies.changeDirection === true) {
-      enemies.positonY = enemies.positonY + 20;
-    }
-
-    enemies.changeDirection = true;
-  }
-
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   constructorEnemie();
   player.draw();
-  enemies.move();
+  groupEnemies.move();
 
   for (var i = 0; i < shoots.length; i++) {
     shoots[i].move();
   }
 
-  ok.forEach(function (element) {
-    shoots.forEach(function (shoot) {
-      if ((0, _ckc.colision)(shoot, element)) {
-        level[element.positonTab.row][element.positonTab.column] = null;
+  enemies.forEach(function (tab) {
+    tab.forEach(function (element) {
+      for (var _i = 0; _i < shoots.length; _i++) {
+        var shoot = shoots[_i];
+
+        if (element) {
+          if ((0, _ckc.colision)(element, shoot)) {
+            shoots.splice(_i, 1);
+            level[element.positonTab.row][element.positonTab.column] = true;
+          }
+        }
       }
     });
   });
 }, 10);
-var ok = [];
+var enemies = [];
 
 var constructorEnemie = function constructorEnemie() {
-  ok = [];
+  enemies = [[], [], [], [], []];
+  var tabCommander = [];
 
   for (var j = 0; j < level.length; j++) {
-    var y = enemies.positonY + 50 * j;
+    var y = groupEnemies.positonY + groupEnemies.space * j;
 
     for (var i = 0; i < level[j].length; i++) {
-      var x = enemies.positonX + 50 * i;
+      var x = groupEnemies.positonX + groupEnemies.space * i;
 
-      if (level[j][i] === '0') {
+      if (level[j][i] === 0) {
         var enemy = new createEnemie(x, y, j, i);
-        ok.push(enemy);
+        enemies[j].push(enemy);
+
+        if (!tabCommander[i] && tabCommander[i] !== 0) {
+          tabCommander[i] = i;
+          enemy.commander = true;
+        }
+
         enemy.move();
-        var enemiesWidth = i * 50 + enemy.width;
+        var enemieWidth = i * groupEnemies.space + enemy.width;
+      } else {
+        enemies[j].push(null);
+
+        if (level[j][i] === true) {
+          level[j][i] = null;
+        }
       }
     }
   }
 
-  enemies.width = enemiesWidth;
+  groupEnemies.width = enemieWidth;
 };
 },{"../js/ckc":"js/ckc.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
@@ -328,7 +367,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58579" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58250" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

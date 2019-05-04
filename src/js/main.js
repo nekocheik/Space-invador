@@ -5,11 +5,11 @@ import { createHitbox , colision , mapHitbox , ballShoot } from '../js/ckc';
 
 
 var level = [
-  [ '0', '0' , '0' , '0' , '0' , '0' , '0' , '0' , '0' , '0' , '0' ],
-  [ '0' , '0' , '0' , '0' , '0' , '0' , '0' , '0' , '0' , '0' , '0' ],
-  [ '0' , '0' , '0' , '0' , '0' , '0' , '0' , '0' , '0' , '0' , '0' ],
-  [ '0' , '0' , '0' , '0' , '0' , '0' , '0' , '0' , '0' , '0' , '0' ],
-  [ '0' , '0' , '0' , '0' , '0' , '0' , '0' , '0' , '0' , '0' , '0' ],
+  [ 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ],
+  [ 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ],
+  [ 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ],
+  [ 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ],
+  [ 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ],
 ]
 
 
@@ -33,21 +33,32 @@ var player = {
 
 
 
-var enemies = {
+var groupEnemies = {
   positonX : 118,
   positonY : 80,
-  speed : 0.4,
+  speed : 0.3 ,
   width: null ,
   direction : 'left',
-  changeDirection : false ,
+  numberTouchWall : 0 ,
+  space : 50 ,
+  jump : 10,
   move : function () {
     if (this.direction === 'left') {
       this.positonX = this.positonX + this.speed ;
     }else{
       this.positonX = this.positonX - this.speed ;
     };
-  } 
+  },
+  changeDirection  : function () {
+    this.direction = ( this.direction === 'left' ? 'right' : 'left');
+    if ( this.changeDirection !== 0 ) {
+      this.positonY = this.positonY + this.jump ;
+      //console.log(this.positonY)
+    }
+    this.numberTouchWall++ ;
+  }
 },
+
 
 
 createEnemie = function ( x , y , j , i ){
@@ -55,6 +66,7 @@ createEnemie = function ( x , y , j , i ){
   this.positonY = y;
   this.width = 32;
   this.height = 32;
+  this.commander = false;
   this.positonTab = {
     row : j ,
     column : i ,
@@ -67,7 +79,23 @@ createEnemie.prototype.move = function () {
   ctx.fillStyle = "black";
   ctx.fill();
   ctx.closePath();
+  if (this.commander) {
+    this.colision()
+  }
 }
+
+
+createEnemie.prototype.colision = function (){
+  if ( mapHitbox ( this , canvas )) {
+    groupEnemies.changeDirection();
+    console.log( this.positonTab )  
+  }
+}
+
+createEnemie.prototype.shoot = function (){
+  
+}
+
 
 
 var shoots = [];
@@ -78,7 +106,7 @@ document.addEventListener('keydown', () => {
   }else if(  event.key === "ArrowLeft" ){
     player.positonX = player.positonX - player.speed ;
   }if( event.key === "a" ){
-    shoots.push( new ballShoot( player , '      ' , ctx ) )
+    shoots.push( new ballShoot( player , '      ' , ctx ) );
   }
 });
 
@@ -88,50 +116,67 @@ document.addEventListener('keydown', () => {
 setInterval( ()=>{ 
   
   mapHitbox( player , canvas )
-  if ( mapHitbox( enemies , canvas ) ) {
-    enemies.direction = ( enemies.direction === 'left' ? 'right' : 'left');
-    if ( enemies.changeDirection === true ) {
-      enemies.positonY = enemies.positonY + 20 ;
-    }
-    enemies.changeDirection = true ;
-  }
+  
+  
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   
   constructorEnemie();
   player.draw();
-  enemies.move();
+  groupEnemies.move();
   
   for (let i = 0; i < shoots.length; i++) {
     shoots[i].move()
   }
-  ok.forEach(element => {
-    shoots.forEach( shoot => {
-      if (colision ( shoot , element )) {
-        level[element.positonTab.row][element.positonTab.column] = null;
+  
+  enemies.forEach( tab => {
+    tab.forEach(element => {
+      for ( let i = 0; i < shoots.length; i++) {
+        let shoot = shoots[i];
+        if ( element ) {
+          if ( colision (  element , shoot ) ) {
+            shoots.splice( i , 1 ) ;
+            level[element.positonTab.row][element.positonTab.column] = true ;
+          }
+        }
       }
-    })
+    });
   });
+  
 }, 10);
 
 
 
-var ok = [];
+var enemies = [];
 
 var constructorEnemie = function () {
-  ok = [] ;
+  enemies =  [[],
+              [],
+              [],
+              [],
+              []
+             ];
+             let tabCommander = []
   for (let j = 0; j < level.length; j++) {
-    let y = enemies.positonY + ( 50 * j ) ;
+    let y =  groupEnemies.positonY + ( groupEnemies.space * j ) ;
     for (let i = 0; i < level[j].length; i++) {
-      let x = enemies.positonX + ( 50 * i ) ;
-      if ( level[j][i] === '0' ) {
-        let enemy = new createEnemie( x , y , j , i)
-        ok.push(enemy);
+      let x =  groupEnemies.positonX + (  groupEnemies.space * i ) ;
+      if ( level[j][i] === 0 ) {
+        let enemy = new createEnemie( x , y , j , i );
+        enemies[j].push(enemy) 
+        if ( !tabCommander[i] && tabCommander[i] !== 0 ) {
+          tabCommander[i] = i ;
+          enemy.commander = true;
+        }
         enemy.move();
-        var enemiesWidth = i * 50 + enemy.width ;
+        var enemieWidth = i * groupEnemies.space + enemy.width ;
+      }else{
+        enemies[j].push( null );
+        if ( level[j][i] === true ){
+          level[j][i] = null;
+        }
       }
     } 
   }
-  enemies.width = enemiesWidth ;
+  groupEnemies.width = enemieWidth ;
 }
-
 

@@ -35,12 +35,15 @@ function colision ( elementOne , elementTwo ){
     this.positonY = element.positonY; 
     this.width = 5;
     this.height = 5;
-    this.speed = 5;
+    this.speed = 8;
     this.direction = direction ;
+    this.life = true
   } 
-
+  
   ballShoot.prototype.move = function () {
-
+    if ( this.life === false ) { 
+      
+      return }
     this.positonY = this.positonY - this.speed ;
     this.ctx.beginPath();
     this.ctx.rect( this.positonX , this.positonY, this.width , this.height);
