@@ -1,6 +1,6 @@
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
-import { createHitbox , colision , mapHitboxLeftRight , ballShoot , shootsPerimeter } from '../js/ckc';
+import { createHitbox , colision , mapHitboxLeftRight  , shootsPerimeter } from '../js/ckc';
 
 
 
@@ -43,19 +43,32 @@ var defenseBlocks = {
 }
 
 function defenseBlock  ( x , y ) {
-  positonX = 100;
-  positonY = 550;
-  width = 70;
-  height = 50; 
-  speed = 30; 
-  reloadMunition = false ;
-  life = 5 ;
+  this.positonX = x;
+  this.positonY = y;
+  this.width = 80;
+  this.height = 50; 
+  this.life = 5 ;
+  this.draw();
+}
+defenseBlock.prototype.draw = function () {
+  ctx.beginPath();
+  ctx.rect( this.positonX , this.positonY, this.width , this.height);
+  ctx.fillStyle = "white";
+  ctx.fill();
+  ctx.closePath();
 }
 
 var blocks = [];
 
 var constructorDefenseBlock = function () {
-  if ( enemies[0] === 'first') {
+  for (let i = 0; i < level.defenseBlock.length; i++) {
+    if ( !blocks[i] ) {
+      let x = ( defenseBlocks.positonX + ( 150 * i )) ;
+      blocks[i] = new defenseBlock( x , defenseBlocks.positonY )
+    }else{
+       console.log(i)
+       blocks[i].draw()
+    }
   }
 }
 
@@ -121,6 +134,38 @@ ennemy.prototype.colision = function (){
   }
 }
 
+var ballShoot = function ( element , direction , ctx ) {
+  this.ctx = ctx ;
+  this.shooter = element ;
+  this.positonX  = element.positonX + ( element.width / 2 ) ;
+  this.positonY = element.positonY; 
+  this.width = 5;
+  this.height = 15;
+  this.speed = 8;
+  this.direction = direction ;
+  this.life = true
+} 
+
+ballShoot.prototype.move = function () {
+  if ( this.positonY < 0 || this.positonY > 600 ) {
+    this.life = false ;
+  }
+  if ( this.life === false ) {  return }
+  if ( this.direction === 'top') {
+    console.log(this.positonY )
+    this.positonY = this.positonY - this.speed ;
+  }else{
+    this.positonY = this.positonY + this.speed ;
+  }
+  this.ctx.beginPath();
+  this.ctx.rect( this.positonX , this.positonY, this.width , this.height);
+  this.ctx.fillStyle = "white";
+  this.ctx.fill();
+  this.ctx.closePath();
+}
+
+
+
 ennemy.prototype.shoot = function (){
   if( shootsPerimeter( player , this ) && !this.reloadMunition ) {
     if ( Math.floor(Math.random() * 10) > 6 ) {
@@ -165,6 +210,7 @@ setInterval( ()=>{
   player.draw();
   groupEnemies.move();
   constructorEnemie() ;
+  constructorDefenseBlock();
   //realodEnemies();
   
   for (let i = 0; i < shoots.length; i++) {

@@ -126,7 +126,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.createHitbox = createHitbox;
 exports.colision = colision;
 exports.mapHitboxLeftRight = mapHitboxLeftRight;
-exports.shootsPerimeter = exports.ballShoot = void 0;
+exports.shootsPerimeter = void 0;
 
 function createHitbox(element) {
   var hitbox = {
@@ -155,43 +155,6 @@ function mapHitboxLeftRight(element, map) {
     return true;
   }
 }
-
-var ballShoot = function ballShoot(element, direction, ctx) {
-  this.ctx = ctx;
-  this.shooter = element;
-  this.positonX = element.positonX + element.width / 2;
-  this.positonY = element.positonY;
-  this.width = 5;
-  this.height = 5;
-  this.speed = 8;
-  this.direction = direction;
-  this.life = true;
-};
-
-exports.ballShoot = ballShoot;
-
-ballShoot.prototype.move = function () {
-  if (this.positonY < 0 || this.positonY > 600) {
-    this.life = false;
-  }
-
-  if (this.life === false) {
-    return;
-  }
-
-  if (this.direction === 'top') {
-    console.log(this.positonY);
-    this.positonY = this.positonY - this.speed;
-  } else {
-    this.positonY = this.positonY + this.speed;
-  }
-
-  this.ctx.beginPath();
-  this.ctx.rect(this.positonX, this.positonY, this.width, this.height);
-  this.ctx.fillStyle = "white";
-  this.ctx.fill();
-  this.ctx.closePath();
-};
 
 var shootsPerimeter = function shootsPerimeter(player, enemy) {
   if (player.positonX < enemy.positonX + 50 && player.positonX > enemy.positonX - 50) {
@@ -235,19 +198,34 @@ var defenseBlocks = {
 };
 
 function defenseBlock(x, y) {
-  positonX = 100;
-  positonY = 550;
-  width = 70;
-  height = 50;
-  speed = 30;
-  reloadMunition = false;
-  life = 5;
+  this.positonX = x;
+  this.positonY = y;
+  this.width = 80;
+  this.height = 50;
+  this.life = 5;
+  this.draw();
 }
+
+defenseBlock.prototype.draw = function () {
+  ctx.beginPath();
+  ctx.rect(this.positonX, this.positonY, this.width, this.height);
+  ctx.fillStyle = "white";
+  ctx.fill();
+  ctx.closePath();
+};
 
 var blocks = [];
 
 var constructorDefenseBlock = function constructorDefenseBlock() {
-  if (enemies[0] === 'first') {}
+  for (var i = 0; i < level.defenseBlock.length; i++) {
+    if (!blocks[i]) {
+      var x = defenseBlocks.positonX + 150 * i;
+      blocks[i] = new defenseBlock(x, defenseBlocks.positonY);
+    } else {
+      console.log(i);
+      blocks[i].draw();
+    }
+  }
 };
 
 var groupEnemies = {
@@ -310,12 +288,47 @@ ennemy.prototype.colision = function () {
   }
 };
 
+var ballShoot = function ballShoot(element, direction, ctx) {
+  this.ctx = ctx;
+  this.shooter = element;
+  this.positonX = element.positonX + element.width / 2;
+  this.positonY = element.positonY;
+  this.width = 5;
+  this.height = 15;
+  this.speed = 8;
+  this.direction = direction;
+  this.life = true;
+};
+
+ballShoot.prototype.move = function () {
+  if (this.positonY < 0 || this.positonY > 600) {
+    this.life = false;
+  }
+
+  if (this.life === false) {
+    return;
+  }
+
+  if (this.direction === 'top') {
+    console.log(this.positonY);
+    this.positonY = this.positonY - this.speed;
+  } else {
+    this.positonY = this.positonY + this.speed;
+  }
+
+  this.ctx.beginPath();
+  this.ctx.rect(this.positonX, this.positonY, this.width, this.height);
+  this.ctx.fillStyle = "white";
+  this.ctx.fill();
+  this.ctx.closePath();
+};
+
 ennemy.prototype.shoot = function () {
   var _this = this;
 
   if ((0, _ckc.shootsPerimeter)(player, this) && !this.reloadMunition) {
     if (Math.floor(Math.random() * 10) > 6) {
-      enemiesShoots.push(new _ckc.ballShoot(this, 'bottom', ctx));
+      enemiesShoots.push(new ballShoot(this, 'bottom', ctx));
     }
 
     this.reloadMunition = true;
@@ -336,7 +349,7 @@ document.addEventListener('keydown', function () {
 
   if (event.key === "a") {
     if (player.reloadMunition) return;
-    shoots.push(new _ckc.ballShoot(player, 'top', ctx));
+    shoots.push(new ballShoot(player, 'top', ctx));
     player.reloadMunition = true;
     setTimeout(function () {
       player.reloadMunition = false;
@@ -348,7 +361,8 @@ setInterval(function () {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   player.draw();
   groupEnemies.move();
-  constructorEnemie(); //realodEnemies();
+  constructorEnemie();
+  constructorDefenseBlock(); //realodEnemies();
 
   for (var i = 0; i < shoots.length; i++) {
     if (!shoots[i].life) {
