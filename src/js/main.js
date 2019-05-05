@@ -6,26 +6,51 @@ import { createHitbox , colision , mapHitboxLeftRight  , shootsPerimeter } from 
 
 var level = {
   enemies : [ 
-    [ 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ],
-    [ 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ],
-    [ 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ],
-    [ 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ],
-    [ 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ],
+    [ 40, 40 , 40 , 40 , 40 , 40 , 40 , 40 , 40 , 40 , 40 ],
+    [ 40, 40 , 40 , 40 , 40 , 40 , 40 , 40 , 40 , 40 , 40 ],
+    [ 30, 30 , 30 , 30 , 30 , 30 , 30 , 30 , 30 , 30 , 30 ],
+    [ 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20],
+    [ 10 , 10 , 10 , 10 , 10 , 10 , 10 , 10 , 10 , 10 , 10 ],
   ],
   defenseBlock : [ 0 , 0 , 0 , 0 ]
 }
 
 
 //________________________________________________________________player____________________________________________________________________//
+
+// ;   // Crée un nouvel élément img
+// img.addEventListener('load', function() {
+//   //  exécute les instructions drawImage ici 
+// }, false);
+// img.src = '../assets'; // définit le chemin de la source
+
+function convertImg(sprite) {
+  let img = new Image() ;
+  return img.src = sprite ;
+}
+
 var player = {
   positonX : 100,
   positonY : 550,
   width : 50,
   height: 20,
   speed: 30,
+  score: 0,
   reloadMunition : false ,
+  sprite : '../assets/Ship.png',
   life : 3 ,
   draw : function ()  {
+    var img = new Image();
+    img.onload = function() {
+      ctx.drawImage(img, 100, 100);
+      ctx.beginPath();
+      ctx.moveTo(30, 96);
+      ctx.lineTo(70, 66);
+      ctx.lineTo(103, 76);
+      ctx.lineTo(170, 15);
+      ctx.stroke();
+    }
+    img.src = this.sprite;
     if( this.life >= 0) {
       ctx.beginPath();
       ctx.rect( this.positonX , this.positonY, this.width , this.height);
@@ -201,8 +226,8 @@ for (let j = ( level.enemies.length - 1  ) ; j > -1 ; j--) {
   let y =  groupEnemies.positonY + ( groupEnemies.space * j ) ;
   for (let i = ( level.enemies[j].length  ) ; i > -1 ; i--) {
     let x =  groupEnemies.positonX + (  groupEnemies.space * i ) ;
-    if ( level.enemies[j][i] === 0 ) {
-       // for create the enmemy if he does not exist. (when the game started)
+    if ( typeof level.enemies[j][i] === 'number' ) {
+      // for create the enmemy if he does not exist. (when the game started)
       if ( !enemies[j][i] ) {
         let enemy = new ennemy( x , y , j  , i  );
         enemies[j][i] = enemy ;
@@ -285,11 +310,11 @@ ennemy.prototype.shoot = function (){
 }
 
 setInterval( ()=>{ 
-
+  
   // check the position of the player if touch the wall befor the drawing
   mapHitboxLeftRight( player , canvas )
-
-    // clears the canvas after drawing
+  
+  // clears the canvas after drawing
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   
   
@@ -314,8 +339,8 @@ setInterval( ()=>{
       shoots[i].move()
     }
   }
-
-// colision of shoots player and defense block
+  
+  // colision of shoots player and defense block
   enemiesShoots.forEach(element => {
     if ( colision(element , player )) {
       player.life--;
@@ -336,30 +361,41 @@ setInterval( ()=>{
         if ( element ) {
           if ( colision (  element , shoot ) ) {
             shoots.splice( i , 1 ) ;
+            player.score += level.enemies[element.positonTab.row][element.positonTab.column] ;
             level.enemies[element.positonTab.row][element.positonTab.column] = true ;
           }
         }
       }
     });
   });
-
-     // colision of shoots enemies and player
-     for (let i = 0; i < enemiesShoots.length; i++) {
-      if ( !enemiesShoots[i].life ) {
-        enemiesShoots.splice( i , 1 );
-      }
-      if (enemiesShoots[i]) {
-        enemiesShoots[i].move()
-      }
+  
+  // colision of shoots enemies and player
+  for (let i = 0; i < enemiesShoots.length; i++) {
+    if ( !enemiesShoots[i].life ) {
+      enemiesShoots.splice( i , 1 );
     }
+    if (enemiesShoots[i]) {
+      enemiesShoots[i].move()
+    }
+  }
   
   
 }, 10);
 
 
 
+setInterval( () =>{
+  reloadDom()
+  }, 100 )
 
-
-
+var lives = document.querySelector('.lives')
+var score = document.querySelector('.score')
+function reloadDom(params) {
+  lives.innerHTML = '' ;
+  score.innerHTML = `<p>Score : ${ player.score }</p>`
+  for (let i = 0; i < player.life; i++) {
+    lives.innerHTML += '<div class="live"></div>';
+  }
+}
 
 
