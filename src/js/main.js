@@ -1,22 +1,38 @@
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 import { createHitbox , colision , mapHitboxLeftRight  , shootsPerimeter } from '../js/ckc';
-var image = new Image();
+
 var assets = {
-  player : {
+  'player' : {
+    img : new Image ,
     life : require('../assets/Ship.png'),
     deathOne : require('../assets/ShipCrushedLeft.png'),
     deathTwo : require('../assets/ShipCrushedRight.png'),
+  }, 
+  '10' : {
+    img : new Image ,
+    '1' : require('../assets/InvaderA1.png'),
+    '2' : require('../assets/InvaderA2.png'),
+  },
+  '20' :  {
+    img : new Image ,
+    '1' : require('../assets/InvaderB1.png'),
+    '2' : require('../assets/InvaderB2.png'),
+  },
+  '40' :{
+    img : new Image ,
+    '1' : require('../assets/InvaderA1.png'),
+    '2' : require('../assets/InvaderA2.png'),
   }
 }
 
-function drawImage( ctx , state , name , img , x  , y , width , height) {
+function drawImage( ctx , state , name , x  , y , width , height) {
   ctx.beginPath();
-  ctx.drawImage( img , x , y , width , height);
+  let test = assets[name].img ;
+  //console.log(test)
+  test.src =  assets[name][state]  ;
+  ctx.drawImage( test , x , y , width , height);
   ctx.closePath();
-  if (assets.player[state]) {
-    img.src =  assets[name][state] 
-  } 
 }
 
 //_____________________________________________________game-level_____________________________________________________//
@@ -24,8 +40,8 @@ function drawImage( ctx , state , name , img , x  , y , width , height) {
 var level = {
   enemies : [ 
     [ 40, 40 , 40 , 40 , 40 , 40 , 40 , 40 , 40 , 40 , 40 ],
-    [ 40, 40 , 40 , 40 , 40 , 40 , 40 , 40 , 40 , 40 , 40 ],
-    [ 30, 30 , 30 , 30 , 30 , 30 , 30 , 30 , 30 , 30 , 30 ],
+    [ 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20],
+    [ 10 , 10 , 10 , 10 , 10 , 10 , 10 , 10 , 10 , 10 , 10 ],
     [ 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20],
     [ 10 , 10 , 10 , 10 , 10 , 10 , 10 , 10 , 10 , 10 , 10 ],
   ],
@@ -42,7 +58,7 @@ function convertImg(sprite) {
 }
 
 var player = {
-  positonX : 100,
+  positonX : 150,
   positonY : 550,
   width : 50,
   height: 20,
@@ -54,7 +70,7 @@ var player = {
   life : 3 ,
   draw : function ()  {
     if( this.life >= 0) {
-      drawImage( ctx , this.state , 'player' , image , this.positonX  , this.positonY , this.width , this.height );
+      drawImage( ctx , this.state , 'player', this.positonX  , this.positonY , this.width , this.height );
     }
   },
 }
@@ -170,13 +186,15 @@ var groupEnemies = {
 
 
 // the creator of the enemy 
-ennemy = function ( x , y , j , i ){
+ennemy = function ( x , y , j , i , point ){
   this.positonX = x;
   this.positonY = y;
-  this.width = 32;
+  this.width = 38;
   this.height = 32;
   this.commander = false;
   this.reloadMunition = false ;
+  this.state = '1' ;
+  this.point = point ;
   this.positonTab = {
     row : j ,
     column : i ,
@@ -185,11 +203,7 @@ ennemy = function ( x , y , j , i ){
 
 // draw the enemy
 ennemy.prototype.move = function () {
-  ctx.beginPath();
-  ctx.rect( this.positonX , this.positonY, this.width , this.height);
-  ctx.fillStyle = "white";
-  ctx.fill();
-  ctx.closePath();
+  drawImage( ctx , this.state , this.point  , this.positonX  , this.positonY , this.width , this.height);
   // commander is the enemy who can change the direction of the group of enemies and shoot
   if (this.commander) {
     this.colision();
@@ -227,7 +241,8 @@ for (let j = ( level.enemies.length - 1  ) ; j > -1 ; j--) {
     if ( typeof level.enemies[j][i] === 'number' ) {
       // for create the enmemy if he does not exist. (when the game started)
       if ( !enemies[j][i] ) {
-        let enemy = new ennemy( x , y , j  , i  );
+        let point = level.enemies[j][i] ;
+        let enemy = new ennemy( x , y , j  , i , point );
         enemies[j][i] = enemy ;
       }else{
         //if the enemy exist him give the new position
@@ -252,6 +267,7 @@ for (let j = ( level.enemies.length - 1  ) ; j > -1 ; j--) {
   } 
 }
 }
+
 
 //________________________________________________________________ball-shots____________________________________________________________________//
 
@@ -404,8 +420,22 @@ function reloadDom(params) {
 }
 
 function blinkColision() {
-    if (player.state !== 'deathOne' ) {
-      player.state = 'deathOne'
-    }else{ player.state = 'deathTwo' }
+  if (player.state !== 'deathOne' ) {
+    player.state = 'deathOne'
+  }else{ player.state = 'deathTwo' }
 }
+
+setTimeout(() => {
+  setInterval(() => {
+    for (let i = 0; i < enemies.length; i++) {
+      enemies[i].forEach(enemy => { 
+        if (enemy) {
+          console.log(enemy.state)
+          enemy.state = enemy.state === '1' ? '2' : '1';
+        }
+      })
+    };
+  }, 300);
+}, 1000);
+
 
