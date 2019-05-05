@@ -1,2 +1,2 @@
 # Space-invador
-https://trusting-perlman-df027c.netlify.com/
+https://space-invaders-ck.netlify.com/
