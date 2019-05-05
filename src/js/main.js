@@ -1,6 +1,23 @@
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 import { createHitbox , colision , mapHitboxLeftRight  , shootsPerimeter } from '../js/ckc';
+var image = new Image();
+var assets = {
+  player : {
+    life : require('../assets/Ship.png'),
+    deathOne : require('../assets/ShipCrushedLeft.png'),
+    deathTwo : require('../assets/ShipCrushedRight.png'),
+  }
+}
+
+function drawImage( ctx , state , name , img , x  , y , width , height) {
+  ctx.beginPath();
+  ctx.drawImage( img , x , y , width , height);
+  ctx.closePath();
+  if (assets.player[state]) {
+    img.src =  assets[name][state] 
+  } 
+}
 
 //_____________________________________________________game-level_____________________________________________________//
 
@@ -18,11 +35,6 @@ var level = {
 
 //________________________________________________________________player____________________________________________________________________//
 
-// ;   // Crée un nouvel élément img
-// img.addEventListener('load', function() {
-//   //  exécute les instructions drawImage ici 
-// }, false);
-// img.src = '../assets'; // définit le chemin de la source
 
 function convertImg(sprite) {
   let img = new Image() ;
@@ -34,29 +46,15 @@ var player = {
   positonY : 550,
   width : 50,
   height: 20,
-  speed: 30,
+  speed: 20,
   score: 0,
+  state : 'life' ,
   reloadMunition : false ,
-  sprite : '../assets/Ship.png',
+  sprite : require('../assets/Ship.png'),
   life : 3 ,
   draw : function ()  {
-    var img = new Image();
-    img.onload = function() {
-      ctx.drawImage(img, 100, 100);
-      ctx.beginPath();
-      ctx.moveTo(30, 96);
-      ctx.lineTo(70, 66);
-      ctx.lineTo(103, 76);
-      ctx.lineTo(170, 15);
-      ctx.stroke();
-    }
-    img.src = this.sprite;
     if( this.life >= 0) {
-      ctx.beginPath();
-      ctx.rect( this.positonX , this.positonY, this.width , this.height);
-      ctx.fillStyle = "white";
-      ctx.fill();
-      ctx.closePath();
+      drawImage( ctx , this.state , 'player' , image , this.positonX  , this.positonY , this.width , this.height );
     }
   },
 }
@@ -67,7 +65,7 @@ document.addEventListener('keydown', () => {
     player.positonX = player.positonX + player.speed ;
   }else if(  event.key === "ArrowLeft" ){
     player.positonX = player.positonX - player.speed ;
-  }if( event.key === "a"  && player.life >= 0 ){
+  }if( event.key === "a"  && player.life >= 0 && player.state === 'life' ){
     if( player.reloadMunition ) return ;
     shoots.push( new ballShoot( player , 'top' , ctx ) );
     
@@ -143,7 +141,7 @@ defenseBlock.prototype.draw = function () {
 var groupEnemies = {
   positonX : 118,
   positonY : 80,
-  speed : 0.1 ,
+  speed : 0.2 ,
   width: null ,
   direction : 'left',
   numberTouchWall : 0 ,
@@ -163,9 +161,9 @@ var groupEnemies = {
     //when the first time the enemies touch a wall they Don't jump
     if ( this.changeDirection !== 0 ) {
       this.positonY = this.positonY + this.jump ;
+      this.speed = ( this.speed * 1.2 )
     }
     //boost the speed of the enemy 
-    this.speed = ( this.speed * 1.1 )
     this.numberTouchWall++ ;
   }
 },
@@ -266,8 +264,8 @@ var ballShoot = function ( element , direction , ctx ) {
   this.shooter = element ;
   this.positonX  = element.positonX + ( element.width / 2 ) ;
   this.positonY = element.positonY; 
-  this.width = 5;
-  this.height = 15;
+  this.width = 4;
+  this.height = 25;
   this.speed = 8;
   this.direction = direction ;
   this.life = true
@@ -285,7 +283,7 @@ ballShoot.prototype.move = function () {
   }else{
     this.positonY = this.positonY + this.speed ;
   }
-  // draw the shoot
+  // draw the shoots
   this.ctx.beginPath();
   this.ctx.rect( this.positonX , this.positonY, this.width , this.height);
   this.ctx.fillStyle = "white";
@@ -342,9 +340,14 @@ setInterval( ()=>{
   
   // colision of shoots player and defense block
   enemiesShoots.forEach(element => {
-    if ( colision(element , player )) {
+    if ( colision(element , player ) && player.state === 'life' ) {
       player.life--;
       element.life = false;
+      var intevalblink = setInterval(() => { blinkColision()}, 80 )
+      setTimeout(() => {
+        clearInterval(intevalblink)
+        player.state = 'life'
+      }, 1000);
     }blocks.forEach( block => {
       if ( colision( element , block )) {
         block.life--;
@@ -378,24 +381,31 @@ setInterval( ()=>{
       enemiesShoots[i].move()
     }
   }
-  
-  
 }, 10);
-
 
 
 setInterval( () =>{
   reloadDom()
-  }, 100 )
+}, 100 )
 
 var lives = document.querySelector('.lives')
 var score = document.querySelector('.score')
 function reloadDom(params) {
-  lives.innerHTML = '' ;
+  
+  let live = lives.querySelectorAll('.live')
+  live.forEach(element => {
+    element.remove()
+  });
+  
   score.innerHTML = `<p>Score : ${ player.score }</p>`
   for (let i = 0; i < player.life; i++) {
     lives.innerHTML += '<div class="live"></div>';
   }
 }
 
+function blinkColision() {
+    if (player.state !== 'deathOne' ) {
+      player.state = 'deathOne'
+    }else{ player.state = 'deathTwo' }
+}
 
