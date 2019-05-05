@@ -53,7 +53,19 @@ canvas{
   top: 20px;
   left: 20px;
 }
+.combo{
+  font-size: 38px;
+  &.blink{
+    animation: blink 300ms linear infinite;
+  }
+}
 
+
+@keyframes blink{
+  0%{opacity: 0;}
+  50%{opacity: .5;}
+  100%{opacity: 1;}
+  }
 
 body{
   background-color: black;

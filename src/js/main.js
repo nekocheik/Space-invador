@@ -29,7 +29,6 @@ var assets = {
 function drawImage( ctx , state , name , x  , y , width , height) {
   ctx.beginPath();
   let test = assets[name].img ;
-  //console.log(test)
   test.src =  assets[name][state]  ;
   ctx.drawImage( test , x , y , width , height);
   ctx.closePath();
@@ -45,7 +44,8 @@ var level = {
     [ 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20],
     [ 10 , 10 , 10 , 10 , 10 , 10 , 10 , 10 , 10 , 10 , 10 ],
   ],
-  defenseBlock : [ 0 , 0 , 0 , 0 ]
+  defenseBlock : [ 0 , 0 , 0 , 0 ],
+  start : false,
 }
 
 
@@ -56,24 +56,30 @@ function convertImg(sprite) {
   let img = new Image() ;
   return img.src = sprite ;
 }
-
-var player = {
-  positonX : 150,
-  positonY : 550,
-  width : 50,
-  height: 20,
-  speed: 20,
-  score: 0,
-  state : 'life' ,
-  reloadMunition : false ,
-  sprite : require('../assets/Ship.png'),
-  life : 3 ,
-  draw : function ()  {
-    if( this.life >= 0) {
-      drawImage( ctx , this.state , 'player', this.positonX  , this.positonY , this.width , this.height );
-    }
-  },
+var gamePlayer = function () {
+  this.positonX = 150 ;
+  this.positonY = 550 ;
+  this.width = 50 ;
+  this.height = 20 ;
+  this.speed = 20 ;
+  this.score = 0 ;
+  this.state = 'life' ;
+  this.reloadMunition = false ;
+  this.combo = 0 ;
+  this.comboTime = false ;
+  this.comboMemo = 0 ;
+  this.life = 3 ;
 }
+
+gamePlayer.prototype.draw = function () {
+  if( this.life >= 0) {
+    drawImage( ctx , this.state , 'player', this.positonX  , this.positonY , this.width , this.height );
+  }else{
+    clearInterval(game)
+  }
+},
+
+
 // its the player touches 
 
 document.addEventListener('keydown', () => {
@@ -146,7 +152,7 @@ defenseBlock.prototype.draw = function () {
   //drawing bloc of defense
   ctx.beginPath();
   ctx.rect( this.positonX , this.positonY, this.width , this.height);
-  ctx.fillStyle = "white";
+  ctx.fillStyle = `#09${this.life}228`;
   ctx.fill();
   ctx.closePath();
 }
@@ -177,7 +183,9 @@ var groupEnemies = {
     //when the first time the enemies touch a wall they Don't jump
     if ( this.changeDirection !== 0 ) {
       this.positonY = this.positonY + this.jump ;
-      this.speed = ( this.speed * 1.2 )
+      if ( this.speed > 2 ) {
+        this.speed = ( this.speed * 1.2 )
+      }
     }
     //boost the speed of the enemy 
     this.numberTouchWall++ ;
@@ -323,16 +331,22 @@ ennemy.prototype.shoot = function (){
   }
 }
 
-setInterval( ()=>{ 
-  
-  // check the position of the player if touch the wall befor the drawing
-  mapHitboxLeftRight( player , canvas )
+
+
+var player = new gamePlayer ();   
+
+
+var game = setInterval( ()=>{ 
+  if ( !level.start ) { 
+    return
+  }
   
   // clears the canvas after drawing
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
-  
   player.draw();
+  
+  
+  mapHitboxLeftRight( player , canvas )
   groupEnemies.move();
   constructorEnemie() ;
   constructorDefenseBlock();
@@ -359,11 +373,9 @@ setInterval( ()=>{
     if ( colision(element , player ) && player.state === 'life' ) {
       player.life--;
       element.life = false;
-      var intevalblink = setInterval(() => { blinkColision()}, 80 )
-      setTimeout(() => {
-        clearInterval(intevalblink)
-        player.state = 'life'
-      }, 1000);
+      player.combo = 0 ; 
+      playerTouchByShoot()
+      
     }blocks.forEach( block => {
       if ( colision( element , block )) {
         block.life--;
@@ -380,7 +392,8 @@ setInterval( ()=>{
         if ( element ) {
           if ( colision (  element , shoot ) ) {
             shoots.splice( i , 1 ) ;
-            player.score += level.enemies[element.positonTab.row][element.positonTab.column] ;
+            timeCombot()
+            player.score += level.enemies[element.positonTab.row][element.positonTab.column] * player.combo ;
             level.enemies[element.positonTab.row][element.positonTab.column] = true ;
           }
         }
@@ -400,23 +413,79 @@ setInterval( ()=>{
 }, 10);
 
 
-setInterval( () =>{
-  reloadDom()
-}, 100 )
 
-var lives = document.querySelector('.lives')
-var score = document.querySelector('.score')
-function reloadDom(params) {
+
+
+var lives = document.querySelector('.lives');
+var combo = document.querySelector('.combo')
+var score = document.querySelector('.score');
+
+
+
+function reloadDom() {
+  if (!level.start) {
+    level.start = true ;
+    return;
+  }
   
   let live = lives.querySelectorAll('.live')
   live.forEach(element => {
     element.remove()
   });
   
+  if(!player.combo){
+    player.combo = 0 ;
+  }
+  combo.innerHTML = `Combo : ${player.combo}`
+  
   score.innerHTML = `<p>Score : ${ player.score }</p>`
   for (let i = 0; i < player.life; i++) {
     lives.innerHTML += '<div class="live"></div>';
   }
+}
+setInterval( () =>{
+  reloadDom()
+}, 100 )
+
+
+setTimeout(() => {
+  setInterval(() => {
+    for (let i = 0; i < enemies.length; i++) {
+      enemies[i].forEach(enemy => { 
+        if (enemy) {
+          enemy.state = enemy.state === '1' ? '2' : '1';
+        }
+      })
+    };
+  }, 300);
+}, 1000);
+
+
+function playerTouchByShoot() {
+  var intevalblink = setInterval(() => { blinkColision()}, 80 )
+  setTimeout(() => {
+    clearInterval(intevalblink)
+    player.state = 'life'
+  }, 1000);
+}
+
+function timeCombot() { 
+  player.combo++;
+  combo.classList.remove('blink')
+  setTimeout(() => {
+    if ( player.comboMemo <= player.combo ) {
+      combo.classList.add('blink')
+    }
+  }, 1500);
+
+ setTimeout(() => {
+    player.comboMemo++;
+    if ( player.comboMemo >= player.combo ) {
+      player.combo = 0 ; 
+      player.comboMemo = 0 ;
+      combo.classList.remove('blink')
+    }
+  }, 2500);
 }
 
 function blinkColision() {
@@ -424,18 +493,5 @@ function blinkColision() {
     player.state = 'deathOne'
   }else{ player.state = 'deathTwo' }
 }
-
-setTimeout(() => {
-  setInterval(() => {
-    for (let i = 0; i < enemies.length; i++) {
-      enemies[i].forEach(enemy => { 
-        if (enemy) {
-          console.log(enemy.state)
-          enemy.state = enemy.state === '1' ? '2' : '1';
-        }
-      })
-    };
-  }, 300);
-}, 1000);
 
 
