@@ -26,12 +26,30 @@ var assets = {
   }
 }
 
-function drawImage( ctx , state , name , x  , y , width , height) {
+function drawImage( ctx , state , name , x  , y , width , height ) {
   ctx.beginPath();
   let test = assets[name].img ;
-  test.src =  assets[name][state]  ;
+  test.src = assets[name][state] ;
   ctx.drawImage( test , x , y , width , height);
   ctx.closePath();
+}
+
+var audio = {
+  shoot: function () {
+    let sound = new Audio();
+    sound.src =  require('../audio/shoot.wav');
+    sound.play();
+  },
+  kill: function () {
+    let sound = new Audio();
+    sound.src =  require('../audio/invaderkilled.wav');
+    sound.play();
+  }, explosion : function(){
+    let sound = new Audio();
+    sound.src =  require('../audio/explosion.wav');
+    sound.play();
+  }
+
 }
 
 //_____________________________________________________game-level_____________________________________________________//
@@ -84,6 +102,7 @@ document.addEventListener('keydown', () => {
   }if( event.key === "a"  && player.life >= 0 && player.state === 'life' ){
     if( player.reloadMunition ) return ;
     shoots.push( new ballShoot( player , 'top' , ctx ) );
+    audio.shoot()
     
     // when the player shoot it create the wait time for restart
     player.reloadMunition = true ;
@@ -315,7 +334,8 @@ ennemy.prototype.shoot = function (){
   if( shootsPerimeter( player , this ) && !this.reloadMunition ) {
     // the random number give the percentage of luke to shoot
     if ( Math.floor(Math.random() * 10) > 7 ) {
-      enemiesShoots.push(new ballShoot( this , 'bottom' , ctx ))     
+      enemiesShoots.push(new ballShoot( this , 'bottom' , ctx ));
+      audio.shoot();
     }
     // give the waiting time after each time
     this.reloadMunition = true ;
@@ -370,8 +390,9 @@ function draw() {
       player.life--;
       element.life = false;
       player.combo = 0 ; 
-      playerTouchByShoot()
-      
+      playerTouchByShoot();
+      audio.explosion();
+
     }blocks.forEach( block => {
       if ( colision( element , block )) {
         block.life--;
@@ -388,6 +409,7 @@ function draw() {
         if ( element ) {
           if ( colision (  element , shoot ) ) {
             shoots.splice( i , 1 ) ;
+            audio.kill();
             timeCombot()
             player.score += level.enemies[element.positonTab.row][element.positonTab.column] * player.combo ;
             level.enemies[element.positonTab.row][element.positonTab.column] = true ;
@@ -496,9 +518,9 @@ function blinkColision() {
   }else{ player.state = 'deathTwo' }
 }
 
-var replay = document.querySelector('.restart').addEventListener('click', function(){
-  restart()
-})
+// var replay = document.querySelector('.restart').addEventListener('click', function(){
+//   restart()#
+// })
 
 
 function restart() {
@@ -510,3 +532,4 @@ function restart() {
     draw()
    }, 10);
 }
+

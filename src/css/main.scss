@@ -2,6 +2,9 @@
   color: white;
 }
 body{
+  background-color: rgb(10, 10, 10);
+}
+body{
   font-family: 'VT323', monospace;
 }
 
@@ -60,6 +63,28 @@ canvas{
   }
 }
 
+.bestScore{
+  text-align: center;
+  background-color: rgb(5, 5, 5);
+  height: 600px;
+  width: 20vw;
+  position: absolute;
+  left: -20vw;
+  h2{
+    font-size: 38px;
+    &::after{
+      content: " ";
+      width: 80%;
+      height: 2px;
+      display: block;
+      margin: 10px auto 5px;
+      background-color: greenyellow;
+    }
+  }p{
+    font-size: 30px;    
+  }
+}
+
 
 @keyframes blink{
   0%{opacity: 0;}
@@ -78,6 +103,3 @@ canvas{
   border-radius: 30px;
 }
 
-body{
-  background-color: black;
-}
