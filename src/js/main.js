@@ -1,59 +1,9 @@
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
-import { createHitbox , colision , mapHitboxLeftRight  , shootsPerimeter } from '../js/ckc';
-
-var audio = {
-  shoot: function () {
-    let sound = new Audio();
-    sound.src =  require('../audio/shoot.wav');
-    sound.play();
-  },
-  kill: function () {
-    let sound = new Audio();
-    sound.src =  require('../audio/invaderkilled.wav');
-    sound.play();
-  }, explosion : function(){
-    let sound = new Audio();
-    sound.src =  require('../audio/explosion.wav');
-    sound.play();
-  }
-  
-}
-
-var assets = {
-  'player' : {
-    live : new Image ,
-    deathOne : new Image,
-    deathTwo : new Image,
-  }, 
-  '10' : {
-    '1'  : new Image ,
-    '2'  : new Image ,
-    // '1' : require('../assets/InvaderA1.png'),
-    // '2' : require('../assets/InvaderA2.png'),
-  },
-  '20' :  {
-    '1'  : new Image ,
-    '2'  : new Image ,
-    // '1' : require('../assets/InvaderB1.png'),
-    // '2' : require('../assets/InvaderB2.png'),
-  },
-  '40' :{
-    '1'  : new Image ,
-    '2'  : new Image ,
-    // '1' : require('../assets/InvaderA1.png'),
-    // '2' : require('../assets/InvaderA2.png'),
-  }
-}
-
-function drawImage( ctx , state , name , x  , y , width , height , autres ) {
-  ctx.beginPath();
-  let test = assets[name][state] ;
-  test.src = autres ;
-  ctx.drawImage( test , x , y , width , height);
-  ctx.closePath();
-}
-
+import { createHitbox , colision , mapHitboxLeftRight  , shootsPerimeter } from './lib';
+import {  audio , assets } from '../js/assets';
+import { bestScore , pushTheScore , giveScore  } from '../js/giveScore';
+import { drawImage } from '../js/drawImage';
 
 //_____________________________________________________game-level_____________________________________________________//
 
@@ -475,6 +425,7 @@ var score = document.querySelector('.score');
 
 
 function reloadDom() {
+  if( !level ) return
   if (!level.start) {
     if ( buttonRestart.className !== 'restart active') {
       buttonRestart.classList.add('active')
@@ -558,8 +509,6 @@ buttonRestart.addEventListener('click', function(){
 })
 
 
-
-
 function restart() {
   if (!level.start) {
     blocks = [];
@@ -579,34 +528,8 @@ function restart() {
 }
 
 
-var bestScore = document.querySelector('.bestScore');
 
-function pushTheScore(scores) {
-  scores.sort().reverse();
-  bestScore.innerHTML = '<h2>Best Score</h2>';
-  for (let i = 0; i < scores.length; i++) {
-    let div = document.createElement('p')
-    div.innerHTML = `${scores[i]} : points`
-    bestScore.appendChild(div);
-  }
-}
 
-// function for convert the score
-
-function giveScore(add) {
-  if( localStorage.length === 0 ) {
-    localStorage.setItem('scores', '[]' );
-  }
-  let score = localStorage.getItem('scores');
-  let local = JSON.parse(score) ;
-  if(add && player.score >1000 ){
-    local.push(player.score);
-  }
-  pushTheScore(local)
-  local.toString();
-  local = `[`+ local+`]`
-  localStorage.setItem('scores', local )
-}
-
+// give-score function export 
 giveScore()
 
