@@ -2,7 +2,7 @@ var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 import { createHitbox , colision , mapHitboxLeftRight  , shootsPerimeter } from './lib';
 import {  audio , assets } from '../js/assets';
-import { bestScore , pushTheScore , giveScore  } from '../js/giveScore';
+//import { bestScore , pushTheScore , giveScore  } from '../js/giveScore';
 import { drawImage } from '../js/drawImage';
 
 //_____________________________________________________game-level_____________________________________________________//
@@ -527,7 +527,36 @@ function restart() {
   }
 }
 
+var bestScore = document.querySelector('.bestScore');
 
+function pushTheScore(scores) {
+  scores.sort();
+  scores.reverse();
+  bestScore.innerHTML = '<h2>Best Score</h2>';
+  for (let i = 0; i < scores.length; i++) {
+    let div = document.createElement('p')
+    div.innerHTML = `${scores[i]} : points`
+    bestScore.appendChild(div);
+  }
+}
+
+// function for convert the score
+
+function giveScore(add) {
+  if( localStorage.length === 0 ) {
+    localStorage.setItem('scores', '[]' );
+  }
+  console.log(player)
+  let score = localStorage.getItem('scores');
+  let local = JSON.parse(score) ;
+  if( add && player.score >1000 ){
+    local.push(player.score);
+  }
+  pushTheScore(local)
+  local.toString();
+  local = `[`+ local+`]`
+  localStorage.setItem('scores', local )
+}
 
 
 // give-score function export 
