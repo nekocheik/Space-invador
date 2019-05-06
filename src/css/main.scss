@@ -67,6 +67,17 @@ canvas{
   100%{opacity: 1;}
   }
 
+.restart{
+  color: black;
+  font-size: 32px;
+  position: absolute;
+  top: 300px;
+  left: 350px;
+  background-color: white;
+  padding: 10px;
+  border-radius: 30px;
+}
+
 body{
   background-color: black;
 }

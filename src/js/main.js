@@ -51,11 +51,6 @@ var level = {
 
 //________________________________________________________________player____________________________________________________________________//
 
-
-function convertImg(sprite) {
-  let img = new Image() ;
-  return img.src = sprite ;
-}
 var gamePlayer = function () {
   this.positonX = 150 ;
   this.positonY = 550 ;
@@ -66,16 +61,15 @@ var gamePlayer = function () {
   this.state = 'life' ;
   this.reloadMunition = false ;
   this.combo = 0 ;
-  this.comboTime = false ;
   this.comboMemo = 0 ;
-  this.life = 3 ;
+  this.life = 4 ;
 }
 
 gamePlayer.prototype.draw = function () {
   if( this.life >= 0) {
     drawImage( ctx , this.state , 'player', this.positonX  , this.positonY , this.width , this.height );
   }else{
-    clearInterval(game)
+    clearInterval( drawing )
   }
 },
 
@@ -335,8 +329,10 @@ ennemy.prototype.shoot = function (){
 
 var player = new gamePlayer ();   
 
+////____________________________________________________canvas_________-
 
-var game = setInterval( ()=>{ 
+function draw() {
+
   if ( !level.start ) { 
     return
   }
@@ -410,7 +406,13 @@ var game = setInterval( ()=>{
       enemiesShoots[i].move()
     }
   }
-}, 10);
+
+}
+
+var drawing = setInterval( ()=>{ 
+  draw()
+ }, 10);
+
 
 
 
@@ -462,11 +464,11 @@ setTimeout(() => {
 
 
 function playerTouchByShoot() {
-  var intevalblink = setInterval(() => { blinkColision()}, 80 )
+  var intevalblink = setInterval(() => { blinkColision()}, 90 )
   setTimeout(() => {
     clearInterval(intevalblink)
     player.state = 'life'
-  }, 1000);
+  }, 1200);
 }
 
 function timeCombot() { 
@@ -494,4 +496,17 @@ function blinkColision() {
   }else{ player.state = 'deathTwo' }
 }
 
+var replay = document.querySelector('.restart').addEventListener('click', function(){
+  restart()
+})
 
+
+function restart() {
+  var blocks = [];
+  enemies = ['first'] ; ;
+  console.log(enemies)
+  player = new gamePlayer ();   
+  var drawing = setInterval( ()=>{ 
+    draw()
+   }, 10);
+}
