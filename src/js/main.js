@@ -2,38 +2,6 @@ var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 import { createHitbox , colision , mapHitboxLeftRight  , shootsPerimeter } from '../js/ckc';
 
-var assets = {
-  'player' : {
-    img : new Image ,
-    live : require('../assets/Ship.png'),
-    deathOne : require('../assets/ShipCrushedLeft.png'),
-    deathTwo : require('../assets/ShipCrushedRight.png'),
-  }, 
-  '10' : {
-    img : new Image ,
-    '1' : require('../assets/InvaderA1.png'),
-    '2' : require('../assets/InvaderA2.png'),
-  },
-  '20' :  {
-    img : new Image ,
-    '1' : require('../assets/InvaderB1.png'),
-    '2' : require('../assets/InvaderB2.png'),
-  },
-  '40' :{
-    img : new Image ,
-    '1' : require('../assets/InvaderA1.png'),
-    '2' : require('../assets/InvaderA2.png'),
-  }
-}
-
-function drawImage( ctx , state , name , x  , y , width , height ) {
-  ctx.beginPath();
-  let test = assets[name].img ;
-  test.src = assets[name][state] ;
-  ctx.drawImage( test , x , y , width , height);
-  ctx.closePath();
-}
-
 var audio = {
   shoot: function () {
     let sound = new Audio();
@@ -51,6 +19,41 @@ var audio = {
   }
   
 }
+
+var assets = {
+  'player' : {
+    live : new Image ,
+    deathOne : new Image,
+    deathTwo : new Image,
+  }, 
+  '10' : {
+    '1'  : new Image ,
+    '2'  : new Image ,
+    // '1' : require('../assets/InvaderA1.png'),
+    // '2' : require('../assets/InvaderA2.png'),
+  },
+  '20' :  {
+    '1'  : new Image ,
+    '2'  : new Image ,
+    // '1' : require('../assets/InvaderB1.png'),
+    // '2' : require('../assets/InvaderB2.png'),
+  },
+  '40' :{
+    '1'  : new Image ,
+    '2'  : new Image ,
+    // '1' : require('../assets/InvaderA1.png'),
+    // '2' : require('../assets/InvaderA2.png'),
+  }
+}
+
+function drawImage( ctx , state , name , x  , y , width , height , autres ) {
+  ctx.beginPath();
+  let test = assets[name][state] ;
+  test.src = autres ;
+  ctx.drawImage( test , x , y , width , height);
+  ctx.closePath();
+}
+
 
 //_____________________________________________________game-level_____________________________________________________//
 
@@ -83,11 +86,16 @@ var gamePlayer = function () {
   this.combo = 0 ;
   this.comboMemo = 0 ;
   this.live = 3 ;
+  this.spirts = {
+    live : require('../assets/Ship.png'),
+    deathOne : require('../assets/ShipCrushedLeft.png'),
+    deathTwo : require('../assets/ShipCrushedRight.png'),
+  } ;
 }
 
 gamePlayer.prototype.draw = function () {
   if( this.live >= 0) {
-    drawImage( ctx , this.state , 'player', this.positonX  , this.positonY , this.width , this.height );
+    drawImage( ctx , this.state , 'player', this.positonX  , this.positonY , this.width , this.height , this.spirts[this.state] );
   }else{
     level.start = false ;
     giveScore(true)
@@ -204,9 +212,8 @@ GroupEnemies.prototype.changeDirection = function () {
   //when the first time the enemies touch a wall they Don't jump
   if ( this.changeDirection !== 0 ) {
     this.positonY = this.positonY + this.jump ;
-    if ( this.speed > 2 ) {
-      this.speed = ( this.speed * 1.2 )
-    }
+  }if ( this.speed > 3 ) {
+    this.speed = ( this.speed * 1.3 )
   }
   //boost the speed of the enemy 
   this.numberTouchWall++ ;
@@ -223,6 +230,20 @@ var ennemy = function ( x , y , j , i , point ){
   this.reloadMunition = false ;
   this.state = '1' ;
   this.point = point ;
+  this.spirts = {
+    '10' : {
+      '1' : require('../assets/InvaderA1.png'),
+      '2' : require('../assets/InvaderA2.png'),
+    },
+    '20' :  {
+      '1' : require('../assets/InvaderB1.png'),
+      '2' : require('../assets/InvaderB2.png'),
+    },
+    '40' :{
+      '1' : require('../assets/InvaderA1.png'),
+      '2' : require('../assets/InvaderA2.png'),
+    }
+  } ;
   this.positonTab = {
     row : j ,
     column : i ,
@@ -231,7 +252,7 @@ var ennemy = function ( x , y , j , i , point ){
 
 // draw the enemy
 ennemy.prototype.move = function () {
-  drawImage( ctx , this.state , this.point  , this.positonX  , this.positonY , this.width , this.height);
+  drawImage( ctx , this.state , this.point  , this.positonX  , this.positonY , this.width , this.height , this.spirts[this.point][this.state] )
   // commander is the enemy who can change the direction of the group of enemies and shoot
   if (this.commander) {
     this.colision();
@@ -340,7 +361,7 @@ ennemy.prototype.shoot = function (){
   // if the player is the perimetre of the enemy he shoot
   if( shootsPerimeter( player , this ) && !this.reloadMunition ) {
     // the random number give the percentage of luke to shoot
-    if ( Math.floor(Math.random() * 10) > 6 ) {
+    if ( Math.floor(Math.random() * 10) > 7 ) {
       enemiesShoots.push(new ballShoot( this , 'bottom' , ctx ));
       audio.shoot();
     }
