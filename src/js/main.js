@@ -49,7 +49,7 @@ var audio = {
     sound.src =  require('../audio/explosion.wav');
     sound.play();
   }
-
+  
 }
 
 //_____________________________________________________game-level_____________________________________________________//
@@ -87,6 +87,7 @@ gamePlayer.prototype.draw = function () {
   if( this.life >= 0) {
     drawImage( ctx , this.state , 'player', this.positonX  , this.positonY , this.width , this.height );
   }else{
+    giveScore(true)
     clearInterval( drawing )
   }
 },
@@ -352,7 +353,7 @@ var player = new gamePlayer ();
 ////____________________________________________________canvas_________-
 
 function draw() {
-
+  
   if ( !level.start ) { 
     return
   }
@@ -392,7 +393,7 @@ function draw() {
       player.combo = 0 ; 
       playerTouchByShoot();
       audio.explosion();
-
+      
     }blocks.forEach( block => {
       if ( colision( element , block )) {
         block.life--;
@@ -428,12 +429,12 @@ function draw() {
       enemiesShoots[i].move()
     }
   }
-
+  
 }
 
 var drawing = setInterval( ()=>{ 
   draw()
- }, 10);
+}, 10);
 
 
 
@@ -501,8 +502,8 @@ function timeCombot() {
       combo.classList.add('blink')
     }
   }, 1500);
-
- setTimeout(() => {
+  
+  setTimeout(() => {
     player.comboMemo++;
     if ( player.comboMemo >= player.combo ) {
       player.combo = 0 ; 
@@ -519,7 +520,7 @@ function blinkColision() {
 }
 
 // var replay = document.querySelector('.restart').addEventListener('click', function(){
-//   restart()#
+//   restart()
 // })
 
 
@@ -530,6 +531,39 @@ function restart() {
   player = new gamePlayer ();   
   var drawing = setInterval( ()=>{ 
     draw()
-   }, 10);
+  }, 10);
 }
+
+
+var bestScore = document.querySelector('.bestScore');
+
+function pushTheScore(scores) {
+  scores.sort().reverse();
+  console.log(scores);
+  bestScore.innerHTML = '<h2>Best Score</h2>';
+  for (let i = 0; i < scores.length; i++) {
+    let div = document.createElement('p')
+    div.innerHTML = `${scores[i]} : points`
+    bestScore.appendChild(div);
+  }
+}
+
+// function for convert the score
+
+function giveScore(add) {
+  if( localStorage.length === 0 ) {
+    localStorage.setItem('scores', '[]' );
+  }
+  let score = localStorage.getItem('scores');
+  let local = JSON.parse(score) ;
+  if(add){
+    local.push(player.score);
+  }
+  pushTheScore(local)
+  local.toString();
+  local = `[` + local+`]`
+  localStorage.setItem('scores', local )
+}
+
+giveScore()
 
