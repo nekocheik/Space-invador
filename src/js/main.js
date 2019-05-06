@@ -5,7 +5,7 @@ import { createHitbox , colision , mapHitboxLeftRight  , shootsPerimeter } from 
 var assets = {
   'player' : {
     img : new Image ,
-    life : require('../assets/Ship.png'),
+    live : require('../assets/Ship.png'),
     deathOne : require('../assets/ShipCrushedLeft.png'),
     deathTwo : require('../assets/ShipCrushedRight.png'),
   }, 
@@ -54,18 +54,20 @@ var audio = {
 
 //_____________________________________________________game-level_____________________________________________________//
 
-var level = {
-  enemies : [ 
+var Level = function () {
+  this.enemies = [ 
     [ 40, 40 , 40 , 40 , 40 , 40 , 40 , 40 , 40 , 40 , 40 ],
     [ 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20],
     [ 10 , 10 , 10 , 10 , 10 , 10 , 10 , 10 , 10 , 10 , 10 ],
     [ 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20 , 20],
     [ 10 , 10 , 10 , 10 , 10 , 10 , 10 , 10 , 10 , 10 , 10 ],
   ],
-  defenseBlock : [ 0 , 0 , 0 , 0 ],
-  start : false,
+  this.defenseBlock = [ 0 , 0 , 0 , 0 ];
+  this.start = true ;
 }
 
+
+var level = new Level();
 
 //________________________________________________________________player____________________________________________________________________//
 
@@ -76,19 +78,20 @@ var gamePlayer = function () {
   this.height = 20 ;
   this.speed = 20 ;
   this.score = 0 ;
-  this.state = 'life' ;
+  this.state = 'live' ;
   this.reloadMunition = false ;
   this.combo = 0 ;
   this.comboMemo = 0 ;
-  this.life = 4 ;
+  this.live = 3 ;
 }
 
 gamePlayer.prototype.draw = function () {
-  if( this.life >= 0) {
+  if( this.live >= 0) {
     drawImage( ctx , this.state , 'player', this.positonX  , this.positonY , this.width , this.height );
   }else{
+    level.start = false ;
     giveScore(true)
-    clearInterval( drawing )
+    clearInterval( drawing)
   }
 },
 
@@ -100,7 +103,7 @@ document.addEventListener('keydown', () => {
     player.positonX = player.positonX + player.speed ;
   }else if(  event.key === "ArrowLeft" ){
     player.positonX = player.positonX - player.speed ;
-  }if( event.key === "a"  && player.life >= 0 && player.state === 'life' ){
+  }if( event.key === "a"  && player.live >= 0 && player.state === 'live' ){
     if( player.reloadMunition ) return ;
     shoots.push( new ballShoot( player , 'top' , ctx ) );
     audio.shoot()
@@ -137,10 +140,10 @@ var constructorDefenseBlock = function () {
   }
 }
 
-var defenseBlocks = {
+var DefenseBlocks = function () {
   //the defenseBlocks give the position who intialise the blocks
-  positonX : 133,
-  positonY : 475,
+  this.positonX = 133
+  this.positonY = 475
 }
 
 function defenseBlock  ( x , y ) {
@@ -148,7 +151,7 @@ function defenseBlock  ( x , y ) {
   this.positonY = y;
   this.width = 80;
   this.height = 50; 
-  this.life = 7 ;
+  this.live = 7 ;
   // when the block is initialize the defenseBlock is drawing
   this.draw();
 }
@@ -158,7 +161,7 @@ function defenseBlock  ( x , y ) {
 
 defenseBlock.prototype.draw = function () {
   //if the defense block is destroyed then stop draw
-  if (this.life < 0) {
+  if (this.live < 0) {
     this.width = 0 ;
     this.height = 0 ;
     return;
@@ -166,7 +169,7 @@ defenseBlock.prototype.draw = function () {
   //drawing bloc of defense
   ctx.beginPath();
   ctx.rect( this.positonX , this.positonY, this.width , this.height);
-  ctx.fillStyle = `#09${this.life}228`;
+  ctx.fillStyle = `#09${this.live}228`;
   ctx.fill();
   ctx.closePath();
 }
@@ -174,41 +177,44 @@ defenseBlock.prototype.draw = function () {
 //________________________________________________________________group-enemies____________________________________________________________________//
 
 //the groupEnemies give the position who intialise the ennemy
-var groupEnemies = {
-  positonX : 118,
-  positonY : 80,
-  speed : 0.2 ,
-  width: null ,
-  direction : 'left',
-  numberTouchWall : 0 ,
+var GroupEnemies = function () {
+  this.positonX = 118
+  this.positonY = 80
+  this.speed = 0.2 
+  this.width = null 
+  this.direction = 'left'
+  this.numberTouchWall = 0 ,
   //its the space between each enemy
-  space : 50 ,
+  this.space = 50 ,
   //the jump whene the ennemies touch a wall
-  jump : 10,
-  move : function () {
-    if (this.direction === 'left') {
-      this.positonX = this.positonX + this.speed ;
-    }else{
-      this.positonX = this.positonX - this.speed ;
-    };
-  },
-  changeDirection  : function () {
-    this.direction = ( this.direction === 'left' ? 'right' : 'left');
-    //when the first time the enemies touch a wall they Don't jump
-    if ( this.changeDirection !== 0 ) {
-      this.positonY = this.positonY + this.jump ;
-      if ( this.speed > 2 ) {
-        this.speed = ( this.speed * 1.2 )
-      }
+  this.jump = 10;
+  
+};
+
+GroupEnemies.prototype.move = function (){
+  if (this.direction === 'left') {
+    this.positonX = this.positonX + this.speed ;
+  }else{
+    this.positonX = this.positonX - this.speed ;
+  };
+}
+
+GroupEnemies.prototype.changeDirection = function () {
+  this.direction = ( this.direction === 'left' ? 'right' : 'left');
+  //when the first time the enemies touch a wall they Don't jump
+  if ( this.changeDirection !== 0 ) {
+    this.positonY = this.positonY + this.jump ;
+    if ( this.speed > 2 ) {
+      this.speed = ( this.speed * 1.2 )
     }
-    //boost the speed of the enemy 
-    this.numberTouchWall++ ;
   }
-},
+  //boost the speed of the enemy 
+  this.numberTouchWall++ ;
+}
 
 
 // the creator of the enemy 
-ennemy = function ( x , y , j , i , point ){
+var ennemy = function ( x , y , j , i , point ){
   this.positonX = x;
   this.positonY = y;
   this.width = 38;
@@ -306,15 +312,15 @@ var ballShoot = function ( element , direction , ctx ) {
   this.height = 25;
   this.speed = 8;
   this.direction = direction ;
-  this.life = true
+  this.live = true
 } 
 
 ballShoot.prototype.move = function () {
   //collision white outside and destroy the shoot
   if ( this.positonY < 0 || this.positonY > ctx.height ) {
-    this.life = false ;
+    this.live = false ;
   }
-  if ( this.life === false ) {  return }
+  if ( this.live === false ) {  return }
   //give the direction of the shoot
   if ( this.direction === 'top') {
     this.positonY = this.positonY - this.speed ;
@@ -334,7 +340,7 @@ ennemy.prototype.shoot = function (){
   // if the player is the perimetre of the enemy he shoot
   if( shootsPerimeter( player , this ) && !this.reloadMunition ) {
     // the random number give the percentage of luke to shoot
-    if ( Math.floor(Math.random() * 10) > 7 ) {
+    if ( Math.floor(Math.random() * 10) > 6 ) {
       enemiesShoots.push(new ballShoot( this , 'bottom' , ctx ));
       audio.shoot();
     }
@@ -349,8 +355,11 @@ ennemy.prototype.shoot = function (){
 
 
 var player = new gamePlayer ();   
+var defenseBlocks = new DefenseBlocks();
+var groupEnemies = new GroupEnemies();
 
-////____________________________________________________canvas_________-
+
+////_____________________________________________________________________canvas_______________________________________________________________________________________
 
 function draw() {
   
@@ -373,12 +382,12 @@ function draw() {
     blocks.forEach( block => {
       if ( colision( shoots[i] , block )) {
         if (shoots[i]) {
-          block.life--;
-          shoots[i].life = false;
+          block.live--;
+          shoots[i].live = false;
         }
       }
     });
-    if ( !shoots[i].life ) {
+    if ( !shoots[i].live ) {
       shoots.splice( i , 1 );
     }if ( shoots[i]) {
       shoots[i].move()
@@ -387,17 +396,17 @@ function draw() {
   
   // colision of shoots player and defense block
   enemiesShoots.forEach(element => {
-    if ( colision(element , player ) && player.state === 'life' ) {
-      player.life--;
-      element.life = false;
+    if ( colision(element , player ) && player.state === 'live' ) {
+      player.live--;
+      element.live = false;
       player.combo = 0 ; 
       playerTouchByShoot();
       audio.explosion();
       
     }blocks.forEach( block => {
       if ( colision( element , block )) {
-        block.life--;
-        element.life = false;
+        block.live--;
+        element.live = false;
       }
     });
   });
@@ -422,7 +431,7 @@ function draw() {
   
   // colision of shoots enemies and player
   for (let i = 0; i < enemiesShoots.length; i++) {
-    if ( !enemiesShoots[i].life ) {
+    if ( !enemiesShoots[i].live ) {
       enemiesShoots.splice( i , 1 );
     }
     if (enemiesShoots[i]) {
@@ -438,9 +447,6 @@ var drawing = setInterval( ()=>{
 
 
 
-
-
-
 var lives = document.querySelector('.lives');
 var combo = document.querySelector('.combo')
 var score = document.querySelector('.score');
@@ -449,8 +455,14 @@ var score = document.querySelector('.score');
 
 function reloadDom() {
   if (!level.start) {
-    level.start = true ;
+    if ( buttonRestart.className !== 'restart active') {
+      buttonRestart.classList.add('active')
+    }
     return;
+  }else{
+    if ( buttonRestart.className !== 'restart' ) {
+      buttonRestart.classList.remove('active')
+    }
   }
   
   let live = lives.querySelectorAll('.live')
@@ -464,7 +476,7 @@ function reloadDom() {
   combo.innerHTML = `Combo : ${player.combo}`
   
   score.innerHTML = `<p>Score : ${ player.score }</p>`
-  for (let i = 0; i < player.life; i++) {
+  for (let i = 0; i < player.live; i++) {
     lives.innerHTML += '<div class="live"></div>';
   }
 }
@@ -490,7 +502,7 @@ function playerTouchByShoot() {
   var intevalblink = setInterval(() => { blinkColision()}, 90 )
   setTimeout(() => {
     clearInterval(intevalblink)
-    player.state = 'life'
+    player.state = 'live'
   }, 1200);
 }
 
@@ -519,19 +531,30 @@ function blinkColision() {
   }else{ player.state = 'deathTwo' }
 }
 
-// var replay = document.querySelector('.restart').addEventListener('click', function(){
-//   restart()
-// })
+var buttonRestart = document.querySelector('.restart');
+buttonRestart.addEventListener('click', function(){
+  restart()
+})
+
+
 
 
 function restart() {
-  var blocks = [];
-  enemies = ['first'] ; ;
-  console.log(enemies)
-  player = new gamePlayer ();   
-  var drawing = setInterval( ()=>{ 
-    draw()
-  }, 10);
+  if (!level.start) {
+    blocks = [];
+    enemies = ['first'] ; 
+    shoots = [];
+    enemiesShoots = [];
+    
+    level = new Level();
+    defenseBlocks = new DefenseBlocks();
+    groupEnemies = new GroupEnemies();
+    player = new gamePlayer ();   
+    
+    drawing = setInterval( ()=>{ 
+      draw()
+    }, 10);
+  }
 }
 
 
@@ -539,7 +562,6 @@ var bestScore = document.querySelector('.bestScore');
 
 function pushTheScore(scores) {
   scores.sort().reverse();
-  console.log(scores);
   bestScore.innerHTML = '<h2>Best Score</h2>';
   for (let i = 0; i < scores.length; i++) {
     let div = document.createElement('p')
@@ -556,12 +578,12 @@ function giveScore(add) {
   }
   let score = localStorage.getItem('scores');
   let local = JSON.parse(score) ;
-  if(add){
+  if(add && player.score >1000 ){
     local.push(player.score);
   }
   pushTheScore(local)
   local.toString();
-  local = `[` + local+`]`
+  local = `[`+ local+`]`
   localStorage.setItem('scores', local )
 }
 

@@ -81,16 +81,17 @@ canvas{
       background-color: greenyellow;
     }
   }p{
+    padding-top: 5px;
     font-size: 30px;    
   }
 }
-
 
 @keyframes blink{
   0%{opacity: 0;}
   50%{opacity: .5;}
   100%{opacity: 1;}
   }
+
 
 .restart{
   color: black;
@@ -101,5 +102,9 @@ canvas{
   background-color: white;
   padding: 10px;
   border-radius: 30px;
+  display: none;
+  &.active{
+    display: initial;
+  }
 }
 
