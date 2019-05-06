@@ -1,7 +1,8 @@
 var bestScore = document.querySelector('.bestScore');
 
 function pushTheScore(scores) {
-  scores.sort().reverse();
+  scores.sort();
+  scores.reverse();
   bestScore.innerHTML = '<h2>Best Score</h2>';
   for (let i = 0; i < scores.length; i++) {
     let div = document.createElement('p')
