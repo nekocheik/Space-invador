@@ -63,14 +63,26 @@ canvas{
   }
 }
 
-.bestScore{
+.more__information{
   text-align: center;
   background-color: rgb(5, 5, 5);
-  height: 600px;
-  width: 20vw;
   position: absolute;
-  left: -20vw;
-  h2{
+  &.more__information--bestScore{
+    height: 600px;
+    width: 20vw;
+    left: -20vw;
+  }
+  &.more__information--assault{
+    height: 200px;
+    width: 20vw;
+    right: -20vw;
+    p{
+      font-size: 130px;    
+    }
+  }p{
+    padding-top: 5px;
+    font-size: 30px;    
+  }h2{
     font-size: 38px;
     &::after{
       content: " ";
@@ -80,9 +92,6 @@ canvas{
       margin: 10px auto 5px;
       background-color: greenyellow;
     }
-  }p{
-    padding-top: 5px;
-    font-size: 30px;    
   }
 }
 

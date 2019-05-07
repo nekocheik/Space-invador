@@ -36,6 +36,7 @@ var gamePlayer = function () {
   this.combo = 0 ;
   this.comboMemo = 0 ;
   this.live = 3 ;
+  this.assault = 1;
   this.spirts = {
     live : require('../assets/Ship.png'),
     deathOne : require('../assets/ShipCrushedLeft.png'),
@@ -61,7 +62,7 @@ document.addEventListener('keydown', () => {
     player.positonX = player.positonX + player.speed ;
   }else if(  event.key === "ArrowLeft" ){
     player.positonX = player.positonX - player.speed ;
-  }if( event.key === "a"  && player.live >= 0 && player.state === 'live' ){
+  }if( event.keyCode === 32  && player.live >= 0 && player.state === 'live' ){
     if( player.reloadMunition ) return ;
     shoots.push( new ballShoot( player , 'top' , ctx ) );
     audio.shoot()
@@ -224,47 +225,52 @@ var enemies = ['first'];
 //________________________________________________________________create-enemies____________________________________________________________________//
 var constructorEnemie = function () {
   if ( enemies[0] === 'first') {
-    enemies = [[],
-    [],
-    [],
-    [],
-    []
-  ];
-}
-//tab who give the title of commander
-let tabCommander = []
-for (let j = ( level.enemies.length - 1  ) ; j > -1 ; j--) {
-  let y =  groupEnemies.positonY + ( groupEnemies.space * j ) ;
-  for (let i = ( level.enemies[j].length  ) ; i > -1 ; i--) {
-    let x =  groupEnemies.positonX + (  groupEnemies.space * i ) ;
-    if ( typeof level.enemies[j][i] === 'number' ) {
-      // for create the enmemy if he does not exist. (when the game started)
-      if ( !enemies[j][i] ) {
-        let point = level.enemies[j][i] ;
-        let enemy = new ennemy( x , y , j  , i , point );
-        enemies[j][i] = enemy ;
-      }else{
-        //if the enemy exist him give the new position
-        enemies[j][i].positonX = x ;
-        enemies[j][i].positonY = y ;
+    enemies = [
+      [],
+      [],
+      [],
+      [],
+      []
+    ];
+  }
+  //tab who give the title of commander
+  let numberEnemiesDeath = 0 ;
+  let tabCommander = []
+  for (let j = ( level.enemies.length - 1  ) ; j > -1 ; j--) {
+    let y =  groupEnemies.positonY + ( groupEnemies.space * j ) ;
+    for (let i = ( level.enemies[j].length  ) ; i > -1 ; i--) {
+      let x =  groupEnemies.positonX + (  groupEnemies.space * i ) ;
+      if ( typeof level.enemies[j][i] === 'number' ) {
+        // for create the enmemy if he does not exist. (when the game started)
+        if ( !enemies[j][i] ) {
+          let point = level.enemies[j][i] ;
+          let enemy = new ennemy( x , y , j  , i , point );
+          enemies[j][i] = enemy ;
+        }else{
+          //if the enemy exist him give the new position
+          enemies[j][i].positonX = x ;
+          enemies[j][i].positonY = y ;
+        }
+        //give the title of commander at enemy if is the first of the column
+        if( !tabCommander[i] && tabCommander[i] !== 0 ) {
+          tabCommander[i] = i ;
+          enemies[j][i].commander = true;
+        }
+        //did move enemy
+        enemies[j][i].move();
       }
-      //give the title of commander at enemy if is the first of the column
-      if( !tabCommander[i] && tabCommander[i] !== 0 ) {
-        tabCommander[i] = i ;
-        enemies[j][i].commander = true;
+      else{
+        enemies[j][i] =  null ;
+        if ( level.enemies[j][i] === true ){
+          // destroy the enemy
+          level.enemies[j][i] = null;
+        }
+        numberEnemiesDeath++; if ( numberEnemiesDeath === 55 ){
+          newAssault();
+        }
       }
-      //did move enemy
-      enemies[j][i].move();
-    }
-    else{
-      enemies[j][i] =  null ;
-      if ( level.enemies[j][i] === true ){
-        // destroy the enemy
-        level.enemies[j][i] = null;
-      }
-    }
-  } 
-}
+    } 
+  }
 }
 
 
@@ -296,7 +302,8 @@ ballShoot.prototype.move = function () {
   if ( this.direction === 'top') {
     this.positonY = this.positonY - this.speed ;
   }else{
-    this.positonY = this.positonY + this.speed ;
+    // for the alien shoots less quickly
+    this.positonY = this.positonY + ( this.speed / 1.4 ) ;
   }
   // draw the shoots
   this.ctx.beginPath();
@@ -421,7 +428,7 @@ var drawing = setInterval( ()=>{
 var lives = document.querySelector('.lives');
 var combo = document.querySelector('.combo')
 var score = document.querySelector('.score');
-
+var assault = document.querySelector('.more__information--assault');
 
 
 function reloadDom() {
@@ -436,7 +443,7 @@ function reloadDom() {
       buttonRestart.classList.remove('active')
     }
   }
-  
+  assault.innerHTML = `<h2>Assault</h2> <p>${player.assault}</p>`;
   let live = lives.querySelectorAll('.live')
   live.forEach(element => {
     element.remove()
@@ -527,12 +534,30 @@ function restart() {
   }
 }
 
-var bestScore = document.querySelector('.bestScore');
+function newAssault() {
+  clearInterval(drawing)
+  enemies = ['first'] ; 
+  shoots = [];
+  enemiesShoots = [];
+  
+  level = new Level();
+  groupEnemies = new GroupEnemies();
+  player.assault++;;   
+  
+  drawing = setInterval( ()=>{ 
+    draw()
+  }, 10);
+}
+
+
+var bestScore = document.querySelector('.more__information--bestScore');
 
 function pushTheScore(scores) {
+  //scores.splice( 10 , 10 )
+  scores = scores.sort()
   scores.sort();
-  scores.reverse();
-  bestScore.innerHTML = '<h2>Best Score</h2>';
+  //scores.reverse();
+  bestScore.innerHTML = '<h2>best Score</h2>';
   for (let i = 0; i < scores.length; i++) {
     let div = document.createElement('p')
     div.innerHTML = `${scores[i]} : points`
@@ -546,11 +571,10 @@ function giveScore(add) {
   if( localStorage.length === 0 ) {
     localStorage.setItem('scores', '[]' );
   }
-  console.log(player)
   let score = localStorage.getItem('scores');
   let local = JSON.parse(score) ;
   if( add && player.score >1000 ){
-    local.push(player.score);
+    local.push(player.score );
   }
   pushTheScore(local)
   local.toString();
