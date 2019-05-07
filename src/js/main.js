@@ -553,10 +553,8 @@ function newAssault() {
 var bestScore = document.querySelector('.more__information--bestScore');
 
 function pushTheScore(scores) {
-  //scores.splice( 10 , 10 )
+  scores.splice( 10 , 11 )
   scores = scores.sort()
-  scores.sort();
-  //scores.reverse();
   bestScore.innerHTML = '<h2>best Score</h2>';
   for (let i = 0; i < scores.length; i++) {
     let div = document.createElement('p')
