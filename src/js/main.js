@@ -264,9 +264,9 @@ var constructorEnemie = function () {
         if ( level.enemies[j][i] === true ){
           // destroy the enemy
           level.enemies[j][i] = null;
-        }
-        numberEnemiesDeath++; if ( numberEnemiesDeath === 55 ){
-          newAssault();
+          numberEnemiesDeath++; if ( numberEnemiesDeath === 55 ) {
+            newAssault();
+          }
         }
       }
     } 
@@ -553,8 +553,9 @@ function newAssault() {
 var bestScore = document.querySelector('.more__information--bestScore');
 
 function pushTheScore(scores) {
-  scores.splice( 10 , 11 )
-  scores = scores.sort()
+  if ( scores.length > 10 ) {
+    scores.pop();
+  }
   bestScore.innerHTML = '<h2>best Score</h2>';
   for (let i = 0; i < scores.length; i++) {
     let div = document.createElement('p')
