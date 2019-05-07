@@ -542,8 +542,8 @@ function newAssault() {
   
   level = new Level();
   groupEnemies = new GroupEnemies();
-  player.assault++;;   
-  
+  player.assault++;   
+  player.live++;
   drawing = setInterval( ()=>{ 
     draw()
   }, 10);
