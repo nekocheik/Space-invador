@@ -62,6 +62,7 @@ document.addEventListener('keydown', () => {
     player.positonX = player.positonX + player.speed ;
   }else if(  event.key === "ArrowLeft" ){
     player.positonX = player.positonX - player.speed ;
+    // event.keyCode 33 = space
   }if( event.keyCode === 32  && player.live >= 0 && player.state === 'live' ){
     if( player.reloadMunition ) return ;
     shoots.push( new ballShoot( player , 'top' , ctx ) );
@@ -72,6 +73,11 @@ document.addEventListener('keydown', () => {
     setTimeout( () => {
       player.reloadMunition = false
     } , 200 )
+
+    if ( !level.start ) {
+      restart();
+    }
+
   }
 });
 // shoot of player
