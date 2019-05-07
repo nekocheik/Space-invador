@@ -233,13 +233,15 @@ var constructorEnemie = function () {
       []
     ];
   }
-  //tab who give the title of commander
+  
   let numberEnemiesDeath = 0 ;
+  //tab who give the title of commander
   let tabCommander = []
   for (let j = ( level.enemies.length - 1  ) ; j > -1 ; j--) {
     let y =  groupEnemies.positonY + ( groupEnemies.space * j ) ;
     for (let i = ( level.enemies[j].length  ) ; i > -1 ; i--) {
       let x =  groupEnemies.positonX + (  groupEnemies.space * i ) ;
+      
       if ( typeof level.enemies[j][i] === 'number' ) {
         // for create the enmemy if he does not exist. (when the game started)
         if ( !enemies[j][i] ) {
@@ -264,9 +266,16 @@ var constructorEnemie = function () {
         if ( level.enemies[j][i] === true ){
           // destroy the enemy
           level.enemies[j][i] = null;
-          numberEnemiesDeath++; if ( numberEnemiesDeath === 55 ) {
+          if ( numberEnemiesDeath === 50 ) {
             newAssault();
           }
+        }
+      }
+      if( level.enemies[j][i] === null ){
+        console.log(numberEnemiesDeath)
+        numberEnemiesDeath = numberEnemiesDeath + 1 ; 
+        if (numberEnemiesDeath === 55) {
+          newAssault();
         }
       }
     } 
