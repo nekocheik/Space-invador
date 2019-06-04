@@ -8,7 +8,7 @@ Install the dépendences of node.
 
 run the parcel 
 
-    npm run dec
+    npm run dev
 
 
 https://space-invaders-ck.netlify.com/
