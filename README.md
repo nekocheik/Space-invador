@@ -1,4 +1,16 @@
 # Space-invador
+
+Commandes for start game 
+
+Install the dépendences of node.
+
+    npm i 
+
+run the parcel 
+
+    npm run dec
+
+
 https://space-invaders-ck.netlify.com/
 
 description : personal project in which i am launched the challenge of recreate the retro game space invadors in JavaScript
